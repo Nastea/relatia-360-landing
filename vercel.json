@@ -1,12 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/conflicte/:path*",
-      "destination": "/:path*"
-    },
-    {
       "source": "/conflicte",
-      "destination": "/"
+      "destination": "/conflicte"
     }
   ]
 }
