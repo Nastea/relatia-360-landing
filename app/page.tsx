@@ -170,7 +170,7 @@ export default function Relatia360Page() {
             {/* Author info - Hidden on mobile, shown on desktop */}
             <div className="hidden md:block mt-8">
               <p 
-                className="text-sm font-medium mb-1"
+                className="text-base font-medium mb-1"
                 style={{ 
                   fontFamily: "var(--font-heading)",
                   color: "#1F2933",
@@ -179,7 +179,7 @@ export default function Relatia360Page() {
               >
                 Lilia Dubița
               </p>
-              <p className="text-xs" style={{ color: "#6B7280", textShadow: "0 1px 2px rgba(255, 255, 255, 0.5)" }}>
+              <p className="text-sm" style={{ color: "#6B7280", textShadow: "0 1px 2px rgba(255, 255, 255, 0.5)" }}>
                 Psiholog, Fondatoarea Relația 360
               </p>
             </div>
