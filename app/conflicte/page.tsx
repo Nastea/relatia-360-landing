@@ -717,6 +717,74 @@ export default function Relatia360Page() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section className="py-20 md:py-32" style={{ background: "linear-gradient(to bottom, #faf8f5, #FFFFFF)" }}>
+        <div className="mx-auto px-4 sm:px-6 max-w-4xl w-full">
+          <h2 
+            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-12 text-center uppercase"
+            style={{ 
+              color: "#1F2933",
+              letterSpacing: "-0.02em",
+              lineHeight: "1.1",
+            }}
+          >
+            ÎNTREBĂRI<br />
+            FRECVENTE
+          </h2>
+          <div className="space-y-6">
+            {[
+              {
+                question: "Ne certăm des și nu ne auzim. Este pentru noi?",
+                answer: "Da. Acest curs este gândit exact pentru cuplurile în care comunicarea s-a blocat, conflictele se repetă și parcă nu reușiți să vă faceți înțeleși."
+              },
+              {
+                question: "Dacă nu sunt într-o relație, are sens să fac cursul?",
+                answer: "Da. Cursul te ajută să înțelegi cum comunici și cum tiparele tale influențează relațiile pe care le creezi. Vei învăța să te conectezi mai bine cu ceilalți și să eviți conflictele inutile."
+              },
+              {
+                question: "Trebuie să facem cursul amândoi?",
+                answer: "Poți parcurge cursul individual și tot vei avea rezultate. Dar dacă participați împreună, conexiunea voastră se transformă mult mai rapid, iar înțelegerea reciprocă crește."
+              },
+              {
+                question: "Sunt doar lecții video?",
+                answer: "Vei primi lecții video, dar și exerciții practice, ușor de aplicat în viața de zi cu zi, care îți permit să testezi imediat ce ai învățat."
+              },
+              {
+                question: "Când primesc accesul?",
+                answer: "Imediat după înscriere. Vei primi toate materialele și vei putea începe cursul instant, fără așteptare."
+              }
+            ].map((faq, idx) => (
+              <div 
+                key={idx} 
+                className="rounded-2xl p-8"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+                  border: "1px solid rgba(0, 0, 0, 0.05)",
+                }}
+              >
+                <h3 
+                  className="text-xl font-semibold mb-4 flex items-start gap-3"
+                  style={{ 
+                    color: "#1F2933",
+                  }}
+                >
+                  <span className="text-2xl" style={{ color: "#E56B6F" }}>❓</span>
+                  <span>{faq.question}</span>
+                </h3>
+                <p 
+                  className="text-lg leading-relaxed flex items-start gap-3"
+                  style={{ color: "#6B7280" }}
+                >
+                  <span className="font-medium mt-1 text-xl" style={{ color: "#E56B6F" }}>✅</span>
+                  <span>{faq.answer}</span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 md:py-32" style={{ background: "linear-gradient(to bottom, #f5ede3, #ebdfce, #e5d9c8)" }}>
         <div className="mx-auto px-4 sm:px-6 max-w-4xl w-full text-center">
