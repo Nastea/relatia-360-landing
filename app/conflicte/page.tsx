@@ -70,9 +70,9 @@ export default function Relatia360Page() {
                   textShadow: "0 2px 4px rgba(255, 255, 255, 0.3)",
                 }}
               >
-                RELAȚIA NU SE<br />
-                RUPE DIN LIPSA<br />
-                DE IUBIRE
+                RELAȚIA 360<br />
+                DE LA CONFLICT<br />
+                LA CONECTARE
               </h1>
 
               {/* Sub-headline */}
@@ -135,9 +135,9 @@ export default function Relatia360Page() {
                   textShadow: "0 2px 4px rgba(255, 255, 255, 0.3)",
                 }}
               >
-                RELAȚIA NU SE<br />
-                RUPE DIN LIPSA<br />
-                DE IUBIRE
+                RELAȚIA 360<br />
+                DE LA CONFLICT<br />
+                LA CONECTARE
               </h1>
 
               {/* Sub-headline */}
@@ -325,7 +325,8 @@ export default function Relatia360Page() {
               }}
             >
               CE REZOLVĂ<br />
-              ACEST MINI-CURS
+              RELAȚIA 360<br />
+              DE LA CONFLICT LA CONECTARE
             </h2>
             <p className="text-xl mb-6 max-w-3xl mx-auto" style={{ color: "#6B7280" }}>
               Nu te învață ce să spui „corect".<br />
@@ -430,7 +431,7 @@ export default function Relatia360Page() {
             >
               DE CE SUNT SIGURĂ<br />
               CĂ AI NEVOIE DE<br />
-              ACEST CURS
+              RELAȚIA 360
             </h2>
           </div>
           <div className="space-y-8 text-lg leading-relaxed" style={{ color: "#6B7280" }}>
@@ -553,7 +554,7 @@ export default function Relatia360Page() {
             }}
           >
             CE OBȚII SIGUR<br />
-            DIN ACEST MINI-CURS
+            DIN RELAȚIA 360
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             {[
