@@ -324,8 +324,7 @@ export default function Relatia360Page() {
                 lineHeight: "1.1",
               }}
             >
-              CE REZOLVĂ<br />
-              RELAȚIA 360<br />
+              CE REZOLVĂ RELAȚIA 360<br />
               DE LA CONFLICT LA CONECTARE
             </h2>
             <p className="text-xl mb-6 max-w-3xl mx-auto" style={{ color: "#6B7280" }}>
