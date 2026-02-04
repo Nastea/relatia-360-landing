@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
+import FAQ from "./FAQ";
 
 export const metadata: Metadata = {
   title: "RELAȚIA 360 - De la conflict la conectare | Mini-curs practic",
@@ -731,8 +732,8 @@ export default function Relatia360Page() {
             ÎNTREBĂRI<br />
             FRECVENTE
           </h2>
-          <div className="space-y-6">
-            {[
+          <FAQ
+            items={[
               {
                 question: "Ne certăm des și nu ne auzim. Este pentru noi?",
                 answer: "Da. Acest curs este gândit exact pentru cuplurile în care comunicarea s-a blocat, conflictele se repetă și parcă nu reușiți să vă faceți înțeleși."
@@ -753,35 +754,8 @@ export default function Relatia360Page() {
                 question: "Când primesc accesul?",
                 answer: "Imediat după înscriere. Vei primi toate materialele și vei putea începe cursul instant, fără așteptare."
               }
-            ].map((faq, idx) => (
-              <div 
-                key={idx} 
-                className="rounded-2xl p-8"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-                  border: "1px solid rgba(0, 0, 0, 0.05)",
-                }}
-              >
-                <h3 
-                  className="text-xl font-semibold mb-4 flex items-start gap-3"
-                  style={{ 
-                    color: "#1F2933",
-                  }}
-                >
-                  <span className="text-2xl" style={{ color: "#E56B6F" }}>❓</span>
-                  <span>{faq.question}</span>
-                </h3>
-                <p 
-                  className="text-lg leading-relaxed flex items-start gap-3"
-                  style={{ color: "#6B7280" }}
-                >
-                  <span className="font-medium mt-1 text-xl" style={{ color: "#E56B6F" }}>✅</span>
-                  <span>{faq.answer}</span>
-                </p>
-              </div>
-            ))}
-          </div>
+            ]}
+          />
         </div>
       </section>
 
