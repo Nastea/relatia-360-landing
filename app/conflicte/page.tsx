@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import FAQ from "./FAQ";
 
 export const metadata: Metadata = {
-  title: "RELAȚIA 360 - De la conflict la conectare | Mini-curs practic",
-  description: "Învață cum să comunici astfel încât orice conflict să vă apropie, nu să vă îndepărteze. Mini-curs practic de comunicare în relații cu Lilia Dubița, psiholog cu peste 13 ani de experiență.",
+  title: "RELAȚIA 360 - De la conflict la conectare | Curs practic",
+  description: "Învață cum să comunici astfel încât orice conflict să vă apropie, nu să vă îndepărteze. Curs practic de comunicare în relații cu Lilia Dubița, psiholog cu peste 13 ani de experiență.",
 };
 
 export default function Relatia360Page() {
@@ -55,7 +55,7 @@ export default function Relatia360Page() {
                     style={{ backgroundColor: "#E56B6F" }}
                   ></div>
                   <span className="text-xs font-medium uppercase tracking-wide" style={{ color: "#1F2933" }}>
-                    Mini-curs practic
+                    Curs practic
                   </span>
                 </div>
               </div>
@@ -98,7 +98,7 @@ export default function Relatia360Page() {
                     boxShadow: "0 4px 12px rgba(229, 107, 111, 0.4)",
                   }}
                 >
-                  Vreau acces la mini-curs
+                  Vreau acces la curs
                 </a>
               </div>
             </div>
@@ -120,7 +120,7 @@ export default function Relatia360Page() {
                     style={{ backgroundColor: "#E56B6F" }}
                   ></div>
                   <span className="text-xs font-medium uppercase tracking-wide" style={{ color: "#1F2933" }}>
-                    Mini-curs practic
+                    Curs practic
                   </span>
                 </div>
               </div>
@@ -163,7 +163,7 @@ export default function Relatia360Page() {
                     boxShadow: "0 4px 12px rgba(229, 107, 111, 0.4)",
                   }}
                 >
-                  Vreau acces la mini-curs
+                  Vreau acces la curs
                 </a>
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function Relatia360Page() {
             </div>
             <div className="pt-8 max-w-3xl mx-auto">
               <p className="text-xl leading-relaxed" style={{ color: "#1F2933" }}>
-                Acest mini-curs este creat exact pentru asta:<br />
+                Acest curs este creat exact pentru asta:<br />
                 <span className="font-semibold">să înveți cum să comunici astfel încât orice conflict să vă apropie, nu să vă îndepărteze.</span>
               </p>
             </div>
@@ -306,7 +306,7 @@ export default function Relatia360Page() {
             }}
           >
             <p className="text-xl font-semibold" style={{ color: "#1F2933" }}>
-              👉 Acest mini-curs este pentru tine.
+              👉 Acest curs este pentru tine.
             </p>
           </div>
         </div>
@@ -455,7 +455,7 @@ export default function Relatia360Page() {
               }}
             >
               <p className="font-semibold mb-2" style={{ color: "#1F2933" }}>
-                Acest mini-curs este mai mult decât informație
+                Acest curs este mai mult decât informație
               </p>
               <p className="mb-4" style={{ color: "#6B7280" }}>
                 Este un ghid practic, în care:
@@ -491,7 +491,7 @@ export default function Relatia360Page() {
             }}
           >
             PENTRU CINE ESTE<br />
-            ACEST MINI-CURS
+            ACEST CURS
           </h2>
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             <div className="space-y-6 p-8 rounded-2xl" style={{ backgroundColor: "#FFFFFF", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)" }}>
@@ -600,7 +600,7 @@ export default function Relatia360Page() {
             }}
           >
             STRUCTURA<br />
-            MINI-CURSULUI
+            CURSULUI
           </h2>
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             {[
@@ -642,7 +642,7 @@ export default function Relatia360Page() {
             }}
           >
             CONȚINUTUL<br />
-            MINI-CURSULUI
+            CURSULUI
           </h2>
           <div className="space-y-6">
             {[
@@ -783,7 +783,7 @@ export default function Relatia360Page() {
                 boxShadow: "0 4px 12px rgba(229, 107, 111, 0.4)",
               }}
             >
-              👉 Vreau mini-cursul „Relația 360<br />
+              👉 Vreau cursul „Relația 360<br />
               De la conflict la conectare"
             </a>
           </div>
