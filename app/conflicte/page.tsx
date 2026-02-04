@@ -428,9 +428,8 @@ export default function Relatia360Page() {
                 lineHeight: "1.1",
               }}
             >
-              DE CE SUNT SIGURĂ<br />
-              CĂ AI NEVOIE DE<br />
-              RELAȚIA 360
+              DE CE SUNT SIGURĂ CĂ AI NEVOIE<br />
+              DE RELAȚIA 360
             </h2>
           </div>
           <div className="space-y-8 text-lg leading-relaxed" style={{ color: "#6B7280" }}>
