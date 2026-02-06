@@ -1,42 +1,36 @@
-# Relația 360 - Landing Page
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Landing page standalone pentru mini-cursul "Relația 360 - De la conflict la conectare".
+## Getting Started
 
-## Tehnologii
+First, run the development server:
 
-- Next.js 16
-- React 19
-- TypeScript
-- Tailwind CSS
-- Google Fonts (DM Serif Display, Inter)
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## Deployment
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Proiectul este gata pentru deployment pe Vercel.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### Pași pentru deployment:
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-1. Creează un repository nou pe GitHub
-2. Conectează repository-ul:
-   ```bash
-   git remote add origin git@github.com:TU_USERNAME/TU_REPO.git
-   git push -u origin main
-   ```
-3. Deploy pe Vercel:
-   - Mergi pe [vercel.com](https://vercel.com)
-   - Importă repository-ul
-   - Vercel va detecta automat Next.js
-   - Click "Deploy"
+## Learn More
 
-## Caracteristici
+To learn more about Next.js, take a look at the following resources:
 
-- ✅ Responsive design (mobile-first)
-- ✅ Optimizare imagini cu Next.js Image
-- ✅ Fonturi Google optimizate
-- ✅ Fără dependențe externe (AI, database, etc.)
-- ✅ Build rapid și lightweight
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Structură
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-- `/` - Pagina principală (landing page)
-- `/public/images/` - Imagini pentru site
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
