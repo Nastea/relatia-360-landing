@@ -1,56 +1,99 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { createHash } from 'crypto';
+
+const PAYNET_SECRET_KEY = process.env.PAYNET_SECRET_KEY;
 
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
-    
+    const hashHeader = req.headers.get('Hash');
+
     // Log received payload for debugging
     console.log('Paynet callback received:', JSON.stringify(payload, null, 2));
+    console.log('Hash header:', hashHeader);
 
-    // Try to find order_id from various possible fields
-    let orderId: string | null = null;
-    
-    if (payload.order_id) {
-      orderId = payload.order_id;
-    } else if (payload.orderId) {
-      orderId = payload.orderId;
-    } else if (payload.invoice_id) {
-      orderId = payload.invoice_id;
+    if (!PAYNET_SECRET_KEY) {
+      console.error('PAYNET_SECRET_KEY not configured');
+      return NextResponse.json({ ok: true }); // Return 200 to avoid retries
     }
 
-    // Check if payment was successful
-    const isSuccess = 
-      payload.status === 'success' || 
-      payload.success === true ||
-      payload.status === 'paid' ||
-      payload.paid === true;
+    // Verify signature
+    if (hashHeader) {
+      const payment = payload.Payment || payload.payment || {};
+      
+      // Build PreparedString exactly as per Paynet docs
+      const preparedString = 
+        (payload.EventDate || '') +
+        (payload.Eventid || payload.EventId || '') +
+        (payload.EventType || '') +
+        (payment.Amount || '') +
+        (payment.Customer || '') +
+        (payment.ExternalID || payment.ExternalId || '') +
+        (payment.ID || payment.Id || '') +
+        (payment.Merchant || '') +
+        (payment.StatusDate || '');
 
-    // If we have an order_id and payment is successful, update the order
-    if (orderId && isSuccess) {
-      const updateData: any = {
-        status: 'paid',
-        paid_at: new Date().toISOString(),
-        paynet_payload: payload,
-      };
+      // Compute hash: Base64(MD5(PreparedString + SECRET_KEY))
+      const hashInput = preparedString + PAYNET_SECRET_KEY;
+      const md5Hash = createHash('md5').update(hashInput).digest();
+      const computedHash = Buffer.from(md5Hash).toString('base64');
 
-      // Add transaction_id if it exists
-      if (payload.transaction_id) {
-        updateData.paynet_transaction_id = payload.transaction_id;
-      } else if (payload.transactionId) {
-        updateData.paynet_transaction_id = payload.transactionId;
+      if (hashHeader !== computedHash) {
+        console.error('Hash verification failed');
+        console.error('Expected:', computedHash);
+        console.error('Received:', hashHeader);
+        console.error('PreparedString:', preparedString);
+        return NextResponse.json(
+          { error: 'Invalid signature' },
+          { status: 400 }
+        );
       }
 
-      const { error } = await supabaseAdmin
-        .from('orders')
-        .update(updateData)
-        .eq('order_id', orderId);
+      console.log('Hash verification successful');
+    }
 
-      if (error) {
-        console.error('Supabase update error:', error);
-        // Still return 200 to avoid retries
+    // Process Paid event
+    if (payload.EventType === 'Paid' || payload.eventType === 'Paid') {
+      const payment = payload.Payment || payload.payment || {};
+      const externalId = payment.ExternalID || payment.ExternalId;
+
+      if (externalId) {
+        // Find order by invoice (ExternalID)
+        const { data: order, error: findError } = await supabaseAdmin
+          .from('orders')
+          .select('order_id')
+          .eq('invoice', externalId.toString())
+          .single();
+
+        if (findError) {
+          console.error('Order not found for invoice:', externalId, findError);
+        } else if (order) {
+          const updateData: any = {
+            status: 'paid',
+            paid_at: new Date().toISOString(),
+            paynet_payload: payload,
+          };
+
+          // Add paynet_payment_id if it exists
+          const paymentId = payment.ID || payment.Id;
+          if (paymentId) {
+            updateData.paynet_payment_id = paymentId.toString();
+          }
+
+          const { error: updateError } = await supabaseAdmin
+            .from('orders')
+            .update(updateData)
+            .eq('order_id', order.order_id);
+
+          if (updateError) {
+            console.error('Supabase update error:', updateError);
+          } else {
+            console.log(`Order ${order.order_id} marked as paid (invoice: ${externalId})`);
+          }
+        }
       } else {
-        console.log(`Order ${orderId} marked as paid`);
+        console.warn('No ExternalID in Payment object');
       }
     }
 
