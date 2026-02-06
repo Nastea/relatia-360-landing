@@ -2,14 +2,82 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { randomUUID } from 'crypto';
 
-const PAYNET_API_HOST = process.env.PAYNET_API_HOST || 'https://api.paynet.md';
-const PAYNET_PORTAL_HOST = process.env.PAYNET_PORTAL_HOST || 'https://paynet.md';
-const PAYNET_MERCHANT_CODE = process.env.PAYNET_MERCHANT_CODE;
-const PAYNET_USERNAME = process.env.PAYNET_USERNAME;
-const PAYNET_PASSWORD = process.env.PAYNET_PASSWORD;
+function validatePaynetEnvVars(): { isValid: boolean; missing: string[] } {
+  const missing: string[] = [];
+  
+  // Required for all modes
+  const requiredVars = [
+    'PAYNET_ENV',
+    'PAYNET_USERNAME',
+    'PAYNET_PASSWORD',
+    'PAYNET_MERCHANT_CODE',
+  ];
+
+  // Check required vars
+  for (const varName of requiredVars) {
+    if (!process.env[varName]) {
+      missing.push(varName);
+    }
+  }
+
+  const paynetEnv = process.env.PAYNET_ENV;
+
+  // If in live mode, check live-specific vars
+  if (paynetEnv === 'live') {
+    if (!process.env.PAYNET_API_HOST_LIVE) {
+      missing.push('PAYNET_API_HOST_LIVE');
+    }
+    if (!process.env.PAYNET_PORTAL_HOST_LIVE) {
+      missing.push('PAYNET_PORTAL_HOST_LIVE');
+    }
+  } else {
+    // Test mode (default)
+    if (!process.env.PAYNET_API_HOST_TEST) {
+      missing.push('PAYNET_API_HOST_TEST');
+    }
+    if (!process.env.PAYNET_PORTAL_HOST_TEST) {
+      missing.push('PAYNET_PORTAL_HOST_TEST');
+    }
+  }
+
+  return {
+    isValid: missing.length === 0,
+    missing,
+  };
+}
+
+function getPaynetConfig() {
+  const paynetEnv = process.env.PAYNET_ENV;
+  const isLive = paynetEnv === 'live';
+
+  return {
+    apiHost: isLive 
+      ? process.env.PAYNET_API_HOST_LIVE 
+      : process.env.PAYNET_API_HOST_TEST,
+    portalHost: isLive
+      ? process.env.PAYNET_PORTAL_HOST_LIVE
+      : process.env.PAYNET_PORTAL_HOST_TEST,
+    username: process.env.PAYNET_USERNAME!,
+    password: process.env.PAYNET_PASSWORD!,
+    merchantCode: process.env.PAYNET_MERCHANT_CODE!,
+  };
+}
 
 export async function POST(req: Request) {
   try {
+    // Validate environment variables first
+    const validation = validatePaynetEnvVars();
+    if (!validation.isValid) {
+      console.error('Missing Paynet environment variables:', validation.missing.join(', '));
+      return NextResponse.json(
+        {
+          error: 'Paynet configuration missing',
+          missing: validation.missing,
+        },
+        { status: 500 }
+      );
+    }
+
     const body = await req.json();
     const { productId, amount, currency = 'MDL' } = body;
 
@@ -28,12 +96,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!PAYNET_MERCHANT_CODE || !PAYNET_USERNAME || !PAYNET_PASSWORD) {
-      return NextResponse.json(
-        { error: 'Paynet configuration missing' },
-        { status: 500 }
-      );
-    }
+    const paynetConfig = getPaynetConfig();
 
     // Generate order_id and invoice
     const orderId = randomUUID();
@@ -63,11 +126,11 @@ export async function POST(req: Request) {
 
     // Authenticate with Paynet
     const authParams = new URLSearchParams({
-      username: PAYNET_USERNAME,
-      password: PAYNET_PASSWORD,
+      username: paynetConfig.username,
+      password: paynetConfig.password,
     });
 
-    const authResponse = await fetch(`${PAYNET_API_HOST}/auth`, {
+    const authResponse = await fetch(`${paynetConfig.apiHost}/auth`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -97,7 +160,7 @@ export async function POST(req: Request) {
     // Create payment
     const paymentBody = {
       Invoice: invoice.toString(),
-      MerchantCode: PAYNET_MERCHANT_CODE,
+      MerchantCode: paynetConfig.merchantCode,
       Currency: 498, // MDL
       Services: [
         {
@@ -106,7 +169,7 @@ export async function POST(req: Request) {
       ],
     };
 
-    const paymentResponse = await fetch(`${PAYNET_API_HOST}/api/Payments`, {
+    const paymentResponse = await fetch(`${paynetConfig.apiHost}/api/Payments`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -146,7 +209,7 @@ export async function POST(req: Request) {
     }
 
     // Build payment URL
-    const paymentUrl = `${PAYNET_PORTAL_HOST}/Acquiring/GetEcom?operation=${paymentId}&Lang=ro`;
+    const paymentUrl = `${paynetConfig.portalHost}/Acquiring/GetEcom?operation=${paymentId}&Lang=ro`;
 
     return NextResponse.json({
       order_id: orderId,
