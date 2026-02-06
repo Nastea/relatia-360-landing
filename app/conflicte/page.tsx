@@ -70,9 +70,9 @@ export default function Relatia360Page() {
                   textShadow: "0 2px 4px rgba(255, 255, 255, 0.3)",
                 }}
               >
-                RELAȚIA NU SE<br />
-                RUPE DIN LIPSA<br />
-                DE IUBIRE
+                RELAȚIA 360<br />
+                DE LA CONFLICT<br />
+                LA CONECTARE
               </h1>
 
               {/* Sub-headline */}
@@ -135,9 +135,9 @@ export default function Relatia360Page() {
                   textShadow: "0 2px 4px rgba(255, 255, 255, 0.3)",
                 }}
               >
-                RELAȚIA NU SE<br />
-                RUPE DIN LIPSA<br />
-                DE IUBIRE
+                RELAȚIA 360<br />
+                DE LA CONFLICT<br />
+                LA CONECTARE
               </h1>
 
               {/* Sub-headline */}
@@ -217,9 +217,9 @@ export default function Relatia360Page() {
                   lineHeight: "1.1",
                 }}
               >
-                RELAȚIA NU SE<br />
-                RUPE DIN LIPSA<br />
-                DE IUBIRE
+                RELAȚIA 360<br />
+                DE LA CONFLICT<br />
+                LA CONECTARE
               </h2>
               <p 
                 className="text-xl md:text-2xl font-normal leading-relaxed"
