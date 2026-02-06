@@ -5,11 +5,39 @@ import Link from 'next/link';
 
 export default function PlataPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handlePayment = () => {
-    if (acceptedTerms) {
-      // Placeholder URL - va fi înlocuit cu URL-ul real de plată
-      window.location.href = 'https://paynet.md/placeholder';
+  const handlePayment = async () => {
+    if (!acceptedTerms) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/paynet/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: 'relatia360_conflicte',
+          amount: 990,
+          currency: 'MDL',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        setError('Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError('A apărut o eroare. Te rugăm să încerci din nou.');
+      setIsLoading(false);
     }
   };
 
@@ -91,24 +119,41 @@ export default function PlataPage() {
                 </label>
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div 
+                  className="p-4 rounded-lg text-sm"
+                  style={{ 
+                    backgroundColor: "#fee2e2",
+                    color: "#991b1b",
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
               {/* Payment Button */}
               <button
                 onClick={handlePayment}
-                disabled={!acceptedTerms}
+                disabled={!acceptedTerms || isLoading}
                 className="w-full py-4 rounded-lg text-lg font-semibold uppercase tracking-wide transition-all"
                 style={{
-                  background: acceptedTerms 
+                  background: acceptedTerms && !isLoading
                     ? "linear-gradient(135deg, #E56B6F 0%, #D84A4E 100%)"
                     : "#d1d5db",
-                  color: acceptedTerms ? "#FFFFFF" : "#9ca3af",
-                  boxShadow: acceptedTerms 
+                  color: acceptedTerms && !isLoading ? "#FFFFFF" : "#9ca3af",
+                  boxShadow: acceptedTerms && !isLoading
                     ? "0 4px 12px rgba(229, 107, 111, 0.4)"
                     : "none",
-                  cursor: acceptedTerms ? "pointer" : "not-allowed",
-                  opacity: acceptedTerms ? 1 : 0.6,
+                  cursor: acceptedTerms && !isLoading ? "pointer" : "not-allowed",
+                  opacity: acceptedTerms && !isLoading ? 1 : 0.6,
                 }}
               >
-                {acceptedTerms ? "Plătește" : "Bifează termenii pentru a continua"}
+                {isLoading 
+                  ? "Se procesează..." 
+                  : acceptedTerms 
+                    ? "Plătește" 
+                    : "Bifează termenii pentru a continua"}
               </button>
 
               {/* Info Note */}

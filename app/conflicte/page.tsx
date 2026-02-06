@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -88,8 +89,8 @@ export default function Relatia360Page() {
 
               {/* CTA Button */}
               <div>
-                <a
-                  href="#"
+                <Link
+                  href="/plata"
                   className="inline-block px-6 py-3 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all hover:opacity-90"
                   style={{
                     background: "linear-gradient(135deg, #E56B6F 0%, #D84A4E 100%)",
@@ -97,8 +98,8 @@ export default function Relatia360Page() {
                     boxShadow: "0 4px 12px rgba(229, 107, 111, 0.4)",
                   }}
                 >
-                  Vreau acces la mini-curs
-                </a>
+                  Vreau acces la curs
+                </Link>
               </div>
             </div>
 
@@ -151,20 +152,20 @@ export default function Relatia360Page() {
                 Descoperă ce se întâmplă <strong>DE FAPT</strong> în comunicare când apare conflictul — și de ce tot ce ai încercat până acum nu a funcționat.
               </p>
 
-              {/* CTA Button */}
-              <div>
-                <a
-                  href="#"
-                  className="inline-block px-8 py-4 rounded-lg text-base font-semibold uppercase tracking-wide transition-all hover:opacity-90"
-                  style={{
-                    background: "linear-gradient(135deg, #E56B6F 0%, #D84A4E 100%)",
-                    color: "#FFFFFF",
-                    boxShadow: "0 4px 12px rgba(229, 107, 111, 0.4)",
-                  }}
-                >
-                  Vreau acces la mini-curs
-                </a>
-              </div>
+            {/* CTA Button */}
+            <div>
+              <Link
+                href="/plata"
+                className="inline-block px-8 py-4 rounded-lg text-base font-semibold uppercase tracking-wide transition-all hover:opacity-90"
+                style={{
+                  background: "linear-gradient(135deg, #E56B6F 0%, #D84A4E 100%)",
+                  color: "#FFFFFF",
+                  boxShadow: "0 4px 12px rgba(229, 107, 111, 0.4)",
+                }}
+              >
+                Vreau acces la curs
+              </Link>
+            </div>
             </div>
 
             {/* Author info - Hidden on mobile, shown on desktop */}
@@ -733,8 +734,8 @@ export default function Relatia360Page() {
             COMUNICAȚI?
           </h2>
           <div className="mt-12">
-            <a
-              href="#"
+            <Link
+              href="/plata"
               className="inline-block px-10 py-5 rounded-lg text-lg font-semibold uppercase tracking-wide transition-all hover:opacity-90"
               style={{
                 background: "linear-gradient(135deg, #E56B6F 0%, #D84A4E 100%)",
@@ -742,9 +743,9 @@ export default function Relatia360Page() {
                 boxShadow: "0 4px 12px rgba(229, 107, 111, 0.4)",
               }}
             >
-              👉 Vreau mini-cursul „Relația 360<br />
+              👉 Vreau cursul „Relația 360<br />
               De la conflict la conectare"
-            </a>
+            </Link>
           </div>
         </div>
       </section>
