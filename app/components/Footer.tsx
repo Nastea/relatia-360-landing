@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -96,9 +97,13 @@ export default function Footer() {
               
               {/* Paynet Logo */}
               <div className="flex items-center justify-center w-24 h-12 rounded bg-white border px-2" style={{ borderColor: "#e5d9c8" }}>
-                <svg width="70" height="20" viewBox="0 0 70 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <text x="5" y="14" fontSize="11" fontWeight="bold" fill="#1F2933" fontFamily="Arial, sans-serif">Paynet</text>
-                </svg>
+                <Image
+                  src="/images/paynet.png"
+                  alt="Paynet"
+                  width={80}
+                  height={32}
+                  className="object-contain"
+                />
               </div>
             </div>
           </div>
