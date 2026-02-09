@@ -228,58 +228,47 @@ export async function POST(req: Request) {
       // Reuse invoice as small numeric (already generated above)
       const invoiceNumber = invoice; // Small number, ~10 digits
 
-      // Build product with current attempt's amount
+      // Build product with current attempt's amount (API v0.5 spec)
+      // Do NOT send nulls for numeric fields - only include required fields
       const product = {
-        GroupName: null,
-        QualitiesConcat: null,
         LineNo: 1,
-        GroupId: null,
         Code: 'relatia360',
         Barcode: 3601,
         Name: 'RELAȚIA 360 – De la conflict la conectare',
         Description: 'Acces online',
-        UnitPrice: attempt.amountValue, // Integer
-        UnitProduct: null,
-        Quantity: 1, // Integer
-        Amount: null,
-        Dimensions: null,
-        Qualities: null,
-        TotalAmount: attempt.amountValue, // Integer
+        GroupId: null, // Can be null
+        GroupName: null, // Can be null
+        UnitPrice: attempt.amountValue, // Integer (no null)
+        UnitProduct: 'pcs', // String per API v0.5 spec
+        Quantity: 1, // Integer (no null)
+        Amount: attempt.amountValue, // Integer (no null)
       };
 
-      // Build payload with keys in EXACT order matching Reg.json
+      // Build payload matching API v0.5 spec for /api/Payments
       const regPayload: any = {
         Invoice: invoiceNumber, // NUMBER (small integer, ~10 digits)
+        Currency: 498, // Always int 498 for MDL per API v0.5
         MerchantCode: merchantCode, // STRING "982657"
-        SaleAreaCode: saleAreaCode, // ALWAYS include: "https_liliadubita_md"
-        LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
-        LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
-        Signature: null,
-        SignVersion: 'v01',
+        SaleAreaCode: saleAreaCode || '', // String, can be empty
         Customer: {
           Code: 'no-reply@liliadubita.md',
-          Name: 'Customer',
           NameFirst: 'Customer',
           NameLast: 'Customer',
+          PhoneNumber: '79306530', // 8-digit numeric string
           email: 'no-reply@liliadubita.md',
           Country: 'Moldova',
           City: 'Chisinau',
           Address: 'Online',
-          PhoneNumber: '79306530', // Realistic 8-digit numeric string
         },
-        Payer: null,
-        Currency: attempt.currency, // Varies by attempt (498 or "MDL")
-        ExternalDate: iso(new Date()), // Without milliseconds and without 'Z'
-        ExpiryDate: iso(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
+        ExpiryDate: iso(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours, "YYYY-MM-DDTHH:mm:ss"
         Services: [
           {
             Name: 'RELAȚIA 360',
             Description: 'Curs practic de comunicare în relații',
-            Amount: attempt.amountValue, // Varies by attempt (must equal sum of Products[].TotalAmount)
-            Products: [product],
+            products: [product], // lowercase "products" per API v0.5 spec
           },
         ],
-        MoneyType: null,
+        SignVersion: 'v05', // API v0.5
       };
 
       // CRITICAL LOGGING: Log the exact payload that will be sent
@@ -287,7 +276,8 @@ export async function POST(req: Request) {
       console.log('PAYNET_REG_PAYLOAD_SENT', JSON.stringify(regPayload));
 
       // Try this attempt - use the payload built INSIDE this loop
-      const paymentResponse = await fetch(`${apiHost}/api/Payments/Send`, {
+      // API v0.5: Use /api/Payments (NOT /api/Payments/Send)
+      const paymentResponse = await fetch(`${apiHost}/api/Payments`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
