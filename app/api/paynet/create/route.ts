@@ -210,13 +210,18 @@ export async function POST(req: Request) {
     // Date formatter: ISO without milliseconds and without 'Z'
     const iso = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
-    // Define 4 attempts with different amount combinations
-    // Note: API v0.5 always uses Currency=498 (int) for MDL
+    // Define 8 attempts: try both endpoints and both SignVersions
+    // A-D: /api/Payments/Send (from Postman/Reg.json)
+    // E-H: /api/Payments (v0.5 endpoint)
     const attempts = [
-      { id: 'A', amountValue: Math.round(amount * 100), description: 'Amount=minor units (99000)' },
-      { id: 'B', amountValue: Math.round(amount), description: 'Amount=major units (990)' },
-      { id: 'C', amountValue: Math.round(amount * 100), description: 'Amount=minor units (99000) - retry' },
-      { id: 'D', amountValue: Math.round(amount), description: 'Amount=major units (990) - retry' },
+      { id: 'A', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount * 100), description: '/api/Payments/Send, v01, minor units' },
+      { id: 'B', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount), description: '/api/Payments/Send, v01, major units' },
+      { id: 'C', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount * 100), description: '/api/Payments/Send, v05, minor units' },
+      { id: 'D', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount), description: '/api/Payments/Send, v05, major units' },
+      { id: 'E', endpoint: '', signVersion: 'v01', amountValue: Math.round(amount * 100), description: '/api/Payments, v01, minor units' },
+      { id: 'F', endpoint: '', signVersion: 'v01', amountValue: Math.round(amount), description: '/api/Payments, v01, major units' },
+      { id: 'G', endpoint: '', signVersion: 'v05', amountValue: Math.round(amount * 100), description: '/api/Payments, v05, minor units' },
+      { id: 'H', endpoint: '', signVersion: 'v05', amountValue: Math.round(amount), description: '/api/Payments, v05, major units' },
     ];
 
     const attemptResults: Array<{ attempt: string; status: number; body: string }> = [];
@@ -256,7 +261,7 @@ export async function POST(req: Request) {
         LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
         LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
         Signature: null,
-        SignVersion: 'v05', // v0.5 API
+        SignVersion: attempt.signVersion, // v01 or v05 per attempt
         Customer: {
           Code: 'no-reply@liliadubita.md', // Email-like as in Reg.json
           Name: 'Customer',
@@ -288,8 +293,9 @@ export async function POST(req: Request) {
       console.log('PAYNET_PAYLOAD_SENT', JSON.stringify(regPayload));
 
       // Try this attempt - use the payload built INSIDE this loop
-      // API v0.5: Use /api/Payments (NOT /api/Payments/Send)
-      const paymentResponse = await fetch(`${apiHost}/api/Payments`, {
+      // Try both endpoints: /api/Payments/Send (Reg.json) and /api/Payments (v0.5)
+      const endpointPath = attempt.endpoint ? `/api/Payments/${attempt.endpoint}` : '/api/Payments';
+      const paymentResponse = await fetch(`${apiHost}${endpointPath}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
