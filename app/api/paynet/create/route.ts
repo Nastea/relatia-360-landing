@@ -107,12 +107,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate order_id and invoice
+    // Generate order_id and invoice ONCE (reuse for all attempts)
     const orderId = randomUUID();
     // Generate invoice as small integer (10 digits max) matching Reg.json style
     const invoice = Math.floor(Date.now() / 1000);
 
-    // Insert into Supabase
+    // Insert into Supabase ONCE before trying any Paynet attempts
     const { data, error: insertError } = await supabaseAdmin
       .from('orders')
       .insert({
@@ -202,156 +202,165 @@ export async function POST(req: Request) {
       );
     }
 
-    // Build Reg.json payload structure for Payments/Send
+    // Build base payload structure (will be modified per attempt)
     const baseUrl = callbackUrl.replace('/api/paynet/callback', '');
-    // Try using amount directly (990) instead of minor units (99000)
-    // If this still fails, we may need to check Paynet docs for correct format
-    const amountValue = Math.round(amount); // Use amount directly (990 MDL, not 99000)
-
-    // Normalize date format: ISO without milliseconds and WITHOUT "Z"
     const isoNoMsNoZ = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
-    // Product with ALL fields in EXACT order matching Reg.json template
-    const productTotalAmount = amountValue; // Single product, so total = unit price * quantity
-    const product = {
-      GroupName: null,
-      QualitiesConcat: null,
-      LineNo: 1,
-      GroupId: null,
-      Code: 'relatia360',
-      Barcode: 3601,
-      Name: 'RELAȚIA 360 – De la conflict la conectare',
-      Description: 'Acces online',
-      UnitPrice: amountValue, // Integer (990, not 99000)
-      UnitProduct: null,
-      Quantity: 1, // Integer
-      Amount: null,
-      Dimensions: null,
-      Qualities: null,
-      TotalAmount: productTotalAmount, // Integer
-    };
+    // Define 4 attempts with different amount/currency combinations
+    const attempts = [
+      { id: 'A', currency: 498, amountValue: Math.round(amount * 100), description: 'Currency=498, Amount=minor units (99000)' },
+      { id: 'B', currency: 498, amountValue: Math.round(amount), description: 'Currency=498, Amount=major units (990)' },
+      { id: 'C', currency: 'MDL', amountValue: Math.round(amount * 100), description: 'Currency=MDL string, Amount=minor units (99000)' },
+      { id: 'D', currency: 'MDL', amountValue: Math.round(amount), description: 'Currency=MDL string, Amount=major units (990)' },
+    ];
 
-    // Build payload with keys in EXACT order matching Reg.json
-    const regPayload: any = {
-      Invoice: invoice, // NUMBER (small integer, 10 digits max)
-      MerchantCode: merchantCode, // STRING (not Number())
-      LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
-      LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
-      Signature: null,
-      SignVersion: 'v01',
-      Customer: {
-        Code: 'no-reply@liliadubita.md', // Email-like string as per Reg.json example
-        Name: 'Customer',
-        NameFirst: 'Customer',
-        NameLast: 'Customer',
-        email: 'no-reply@liliadubita.md',
-        Country: 'Moldova',
-        City: 'Chisinau',
-        Address: 'Online',
-        PhoneNumber: '79306530', // 8 digits numeric phone
+    const attemptResults: Array<{ attempt: string; status: number; body: string }> = [];
+
+    // Try each attempt in order, stop on first success
+    for (const attempt of attempts) {
+      console.log('PAYNET_ATTEMPT', attempt.id, attempt.description);
+
+      // Build product with current attempt's amount
+      const product = {
+        GroupName: null,
+        QualitiesConcat: null,
+        LineNo: 1,
+        GroupId: null,
+        Code: 'relatia360',
+        Barcode: 3601,
+        Name: 'RELAȚIA 360 – De la conflict la conectare',
+        Description: 'Acces online',
+        UnitPrice: attempt.amountValue, // Integer
+        UnitProduct: null,
+        Quantity: 1, // Integer
+        Amount: null,
+        Dimensions: null,
+        Qualities: null,
+        TotalAmount: attempt.amountValue, // Integer
+      };
+
+      // Build payload with keys in EXACT order matching Reg.json
+      const regPayload: any = {
+        Invoice: invoice, // NUMBER (small integer, 10 digits max)
+        MerchantCode: merchantCode, // STRING (not Number())
+        LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
+        LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
+        Signature: null,
+        SignVersion: 'v01',
+        Customer: {
+          Code: 'no-reply@liliadubita.md',
+          Name: 'Customer',
+          NameFirst: 'Customer',
+          NameLast: 'Customer',
+          email: 'no-reply@liliadubita.md',
+          Country: 'Moldova',
+          City: 'Chisinau',
+          Address: 'Online',
+          PhoneNumber: '79306530',
+        },
+        Payer: null,
+        Currency: attempt.currency, // Try different formats per attempt
+        ExternalDate: isoNoMsNoZ(new Date()),
+        ExpiryDate: isoNoMsNoZ(new Date(Date.now() + 2 * 60 * 60 * 1000)),
+        Services: [
+          {
+            Name: 'RELAȚIA 360',
+            Description: 'Curs practic de comunicare în relații',
+            Amount: attempt.amountValue, // Must equal sum of Products[].TotalAmount
+            Products: [product],
+          },
+        ],
+        MoneyType: null,
+      };
+
+      // Log payload for this attempt
+      console.log('PAYNET_REG_PAYLOAD', JSON.stringify(regPayload));
+
+      // Try this attempt
+      const paymentResponse = await fetch(`${apiHost}/api/Payments/Send`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(regPayload),
+      });
+
+      const paymentResponseText = await paymentResponse.text();
+      console.log('PAYNET_PAYMENTS_STATUS', paymentResponse.status);
+      console.log('PAYNET_PAYMENTS_BODY', paymentResponseText);
+
+      // Record attempt result
+      attemptResults.push({
+        attempt: attempt.id,
+        status: paymentResponse.status,
+        body: paymentResponseText,
+      });
+
+      // If successful, stop and return
+      if (paymentResponse.ok) {
+        let paymentData;
+        try {
+          paymentData = JSON.parse(paymentResponseText);
+        } catch (e) {
+          console.error('PAYNET PAYMENTS PARSE ERROR', e);
+          // Continue to next attempt if parse fails
+          continue;
+        }
+
+        const paymentId = paymentData.PaymentID || paymentData.id || paymentData.ID;
+        const signature = paymentData.Signature || paymentData.signature;
+
+        if (!paymentId) {
+          console.error('No PaymentID in response:', paymentData);
+          // Continue to next attempt
+          continue;
+        }
+
+        // Update order with paynet_payment_id and signature
+        const updateData: any = {
+          paynet_payment_id: Number(paymentId),
+        };
+
+        if (signature) {
+          updateData.paynet_signature = signature;
+        }
+
+        const { error: updateError } = await supabaseAdmin
+          .from('orders')
+          .update(updateData)
+          .eq('order_id', orderId);
+
+        if (updateError) {
+          console.error('Failed to update order with payment ID:', updateError);
+          // Continue anyway, payment was created
+        }
+
+        // Return success with attempt info
+        return NextResponse.json({
+          ok: true,
+          order_id: orderId,
+          invoice: String(invoice),
+          payment_id: paymentId.toString(),
+          signature: signature || null,
+          attempt: attempt.id,
+          redirect_base: 'https://test.paynet.md/acquiring/getecom',
+        });
+      }
+
+      // If not successful, continue to next attempt
+      console.log(`PAYNET_ATTEMPT ${attempt.id} failed, trying next...`);
+    }
+
+    // All attempts failed
+    return NextResponse.json(
+      {
+        error: 'PAYNET_PAYMENTS_FAILED',
+        attempts: attemptResults,
+        note: 'All 4 attempts (A, B, C, D) failed. Check PAYNET_ATTEMPT logs in Vercel.',
       },
-      Payer: null,
-      Currency: 498, // MDL
-      ExternalDate: isoNoMsNoZ(new Date()),
-      ExpiryDate: isoNoMsNoZ(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
-      Services: [
-        {
-          Name: 'RELAȚIA 360',
-          Description: 'Curs practic de comunicare în relații',
-          Amount: productTotalAmount, // Must equal sum of Products[].TotalAmount (990, not 99000)
-          Products: [product],
-        },
-      ],
-      MoneyType: null,
-    };
-
-    // Log payload for debugging (no secrets exposed)
-    console.log('PAYNET_REG_PAYLOAD', JSON.stringify(regPayload));
-
-    const paymentResponse = await fetch(`${apiHost}/api/Payments/Send`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(regPayload),
-    });
-
-    const paymentResponseText = await paymentResponse.text();
-    console.log('PAYNET_PAYMENTS_STATUS', paymentResponse.status);
-    console.log('PAYNET_PAYMENTS_BODY', paymentResponseText);
-
-    if (!paymentResponse.ok) {
-      return NextResponse.json(
-        {
-          error: 'PAYNET_PAYMENTS_FAILED',
-          status: paymentResponse.status,
-          details: paymentResponseText,
-          note: 'Check PAYNET_REG_PAYLOAD in Vercel logs',
-        },
-        { status: 502 }
-      );
-    }
-
-    let paymentData;
-    try {
-      paymentData = JSON.parse(paymentResponseText);
-    } catch (e) {
-      console.error('PAYNET PAYMENTS PARSE ERROR', e);
-      return NextResponse.json(
-        {
-          error: 'PAYNET_PAYMENTS_FAILED',
-          status: paymentResponse.status,
-          details: paymentResponseText,
-          note: 'Failed to parse payment response as JSON',
-        },
-        { status: 502 }
-      );
-    }
-
-    const paymentId = paymentData.PaymentID || paymentData.id || paymentData.ID;
-    const signature = paymentData.Signature || paymentData.signature;
-
-    if (!paymentId) {
-      console.error('No PaymentID in response:', paymentData);
-      return NextResponse.json(
-        {
-          error: 'PAYNET_PAYMENTS_FAILED',
-          status: paymentResponse.status,
-          details: paymentResponseText,
-          note: 'No PaymentID in response',
-        },
-        { status: 502 }
-      );
-    }
-
-    // Update order with paynet_payment_id and signature
-    const updateData: any = {
-      paynet_payment_id: Number(paymentId),
-    };
-
-    if (signature) {
-      updateData.paynet_signature = signature;
-    }
-
-    const { error: updateError } = await supabaseAdmin
-      .from('orders')
-      .update(updateData)
-      .eq('order_id', orderId);
-
-    if (updateError) {
-      console.error('Failed to update order with payment ID:', updateError);
-      // Continue anyway, payment was created
-    }
-
-    // Return payment details for frontend to handle redirect
-    return NextResponse.json({
-      order_id: orderId,
-      invoice: String(invoice),
-      payment_id: paymentId.toString(),
-      signature: signature || null,
-      redirect_base: 'https://test.paynet.md/acquiring/getecom',
-    });
+      { status: 502 }
+    );
   } catch (e) {
     console.error('PAYNET CREATE FATAL', e);
     return NextResponse.json(
