@@ -202,9 +202,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Build base payload structure (will be modified per attempt)
+    // Build base URL for callbacks
     const baseUrl = callbackUrl.replace('/api/paynet/callback', '');
-    const isoNoMsNoZ = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
+    // Date formatter: ISO without milliseconds and without 'Z'
+    const iso = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
     // Define 4 attempts with different amount/currency combinations
     const attempts = [
@@ -219,6 +220,10 @@ export async function POST(req: Request) {
     // Try each attempt in order, stop on first success
     for (const attempt of attempts) {
       console.log('PAYNET_ATTEMPT', attempt.id, attempt.description);
+
+      // Build payload INSIDE the loop for each attempt
+      // Reuse invoice as small numeric (already generated above)
+      const invoiceNumber = invoice; // Small number, ~10 digits
 
       // Build product with current attempt's amount
       const product = {
@@ -241,8 +246,9 @@ export async function POST(req: Request) {
 
       // Build payload with keys in EXACT order matching Reg.json
       const regPayload: any = {
-        Invoice: invoice, // NUMBER (small integer, 10 digits max)
-        MerchantCode: merchantCode, // STRING (not Number())
+        Invoice: invoiceNumber, // NUMBER (small integer, ~10 digits)
+        MerchantCode: merchantCode, // STRING "982657"
+        SaleAreaCode: saleAreaCode, // ALWAYS include: "https_liliadubita_md"
         LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
         LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
         Signature: null,
@@ -256,34 +262,35 @@ export async function POST(req: Request) {
           Country: 'Moldova',
           City: 'Chisinau',
           Address: 'Online',
-          PhoneNumber: '79306530',
+          PhoneNumber: '79306530', // Realistic 8-digit numeric string
         },
         Payer: null,
-        Currency: attempt.currency, // Try different formats per attempt
-        ExternalDate: isoNoMsNoZ(new Date()),
-        ExpiryDate: isoNoMsNoZ(new Date(Date.now() + 2 * 60 * 60 * 1000)),
+        Currency: attempt.currency, // Varies by attempt (498 or "MDL")
+        ExternalDate: iso(new Date()), // Without milliseconds and without 'Z'
+        ExpiryDate: iso(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
         Services: [
           {
             Name: 'RELAȚIA 360',
             Description: 'Curs practic de comunicare în relații',
-            Amount: attempt.amountValue, // Must equal sum of Products[].TotalAmount
+            Amount: attempt.amountValue, // Varies by attempt (must equal sum of Products[].TotalAmount)
             Products: [product],
           },
         ],
         MoneyType: null,
       };
 
-      // Log payload for this attempt
-      console.log('PAYNET_REG_PAYLOAD', JSON.stringify(regPayload));
+      // CRITICAL LOGGING: Log the exact payload that will be sent
+      console.log('PAYNET_ATTEMPT', attempt.id);
+      console.log('PAYNET_REG_PAYLOAD_SENT', JSON.stringify(regPayload));
 
-      // Try this attempt
+      // Try this attempt - use the payload built INSIDE this loop
       const paymentResponse = await fetch(`${apiHost}/api/Payments/Send`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(regPayload),
+        body: JSON.stringify(regPayload), // Use payload built in this loop iteration
       });
 
       const paymentResponseText = await paymentResponse.text();
