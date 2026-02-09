@@ -229,50 +229,58 @@ export async function POST(req: Request) {
       // Reuse invoice as small numeric (already generated above)
       const invoiceNumber = invoice; // Small number, ~10 digits
 
-      // Build product with current attempt's amount (API v0.5 spec)
-      // Do NOT send nulls - use strings/numbers as per spec
+      // Build product matching Reg.json structure exactly
       const chosenAmount = attempt.amountValue;
       const product = {
-        Amount: chosenAmount, // int
-        Barcode: 3601, // int
-        Code: 'relatia360', // string
-        Description: 'Acces online', // string
-        GroupId: '1', // string (avoid null)
-        GroupName: 'COURSE', // string (avoid null)
-        LineNo: 1, // int
+        GroupName: null,
+        QualitiesConcat: null,
+        LineNo: 1,
+        GroupId: null,
+        Code: 'relatia360',
+        Barcode: 3601,
         Name: 'RELAȚIA 360 – De la conflict la conectare',
+        Description: 'Acces online',
         UnitPrice: chosenAmount, // int
-        UnitProduct: 1, // int (NOT "pcs")
+        UnitProduct: null,
         Quantity: 1, // int
+        Amount: null,
+        Dimensions: null,
+        Qualities: null,
+        TotalAmount: chosenAmount, // int - sum of UnitPrice * Quantity
       };
 
-      // Build payload matching API v0.5 spec exactly for /api/Payments
+      // Build payload matching Reg.json structure (with v05 SignVersion)
       const regPayload: any = {
         Invoice: invoiceNumber, // NUMBER (small integer, ~10 digits)
-        Currency: 498, // Always int 498 for MDL per API v0.5
         MerchantCode: merchantCode, // STRING "982657"
-        SaleAreaCode: saleAreaCode || '', // String, can be empty
+        LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
+        LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
+        Signature: null,
+        SignVersion: 'v05', // v0.5 API
         Customer: {
-          Code: 'Customer Code',
+          Code: 'no-reply@liliadubita.md', // Email-like as in Reg.json
+          Name: 'Customer',
           NameFirst: 'Customer',
           NameLast: 'Customer',
-          PhoneNumber: '79306530', // 8-digit numeric string
           email: 'no-reply@liliadubita.md',
           Country: 'Moldova',
           City: 'Chisinau',
           Address: 'Online',
+          PhoneNumber: '79306530', // 8-digit numeric string
         },
-        ExpiryDate: iso(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours, "YYYY-MM-DDTHH:mm:ss"
+        Payer: null,
+        Currency: 498, // int 498 for MDL
+        ExternalDate: iso(new Date()), // "YYYY-MM-DDTHH:mm:ss"
+        ExpiryDate: iso(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
         Services: [
           {
             Name: 'RELAȚIA 360',
             Description: 'Curs practic de comunicare în relații',
-            products: [product], // lowercase "products" per API v0.5 spec
-            amount: chosenAmount, // IMPORTANT: lowercase "amount" at service level
+            Amount: chosenAmount, // Uppercase Amount (matching Reg.json)
+            Products: [product], // Uppercase Products (matching Reg.json)
           },
         ],
-        SignVersion: 'v05', // API v0.5
-        MoneyType: { Code: 'PAYNET' }, // IMPORTANT: object, not null
+        MoneyType: null,
       };
 
       // CRITICAL LOGGING: Log the exact payload that will be sent
