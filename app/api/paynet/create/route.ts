@@ -210,12 +210,13 @@ export async function POST(req: Request) {
     // Date formatter: ISO without milliseconds and without 'Z'
     const iso = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
-    // Define 4 attempts with different amount/currency combinations
+    // Define 4 attempts with different amount combinations
+    // Note: API v0.5 always uses Currency=498 (int) for MDL
     const attempts = [
-      { id: 'A', currency: 498, amountValue: Math.round(amount * 100), description: 'Currency=498, Amount=minor units (99000)' },
-      { id: 'B', currency: 498, amountValue: Math.round(amount), description: 'Currency=498, Amount=major units (990)' },
-      { id: 'C', currency: 'MDL', amountValue: Math.round(amount * 100), description: 'Currency=MDL string, Amount=minor units (99000)' },
-      { id: 'D', currency: 'MDL', amountValue: Math.round(amount), description: 'Currency=MDL string, Amount=major units (990)' },
+      { id: 'A', amountValue: Math.round(amount * 100), description: 'Amount=minor units (99000)' },
+      { id: 'B', amountValue: Math.round(amount), description: 'Amount=major units (990)' },
+      { id: 'C', amountValue: Math.round(amount * 100), description: 'Amount=minor units (99000) - retry' },
+      { id: 'D', amountValue: Math.round(amount), description: 'Amount=major units (990) - retry' },
     ];
 
     const attemptResults: Array<{ attempt: string; status: number; body: string }> = [];
