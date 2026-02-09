@@ -29,10 +29,16 @@ export default function PlataPage() {
 
       const data = await response.json();
 
-      if (data.payment_url) {
+      if (data.payment_id && data.redirect_base) {
+        // Frontend will handle POST/redirect later
+        // For now, redirect to Paynet form
+        const paymentUrl = `${data.redirect_base}?operation=${data.payment_id}&Lang=ro`;
+        window.location.href = paymentUrl;
+      } else if (data.payment_url) {
+        // Fallback for old format
         window.location.href = data.payment_url;
       } else {
-        setError('Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.');
+        setError(data.details || data.error || 'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.');
         setIsLoading(false);
       }
     } catch (err) {

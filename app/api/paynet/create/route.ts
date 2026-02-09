@@ -162,10 +162,11 @@ export async function POST(req: Request) {
 
     if (!authResponse.ok) {
       const authErrorText = await authResponse.text();
-      console.error('PAYNET AUTH ERROR', authResponse.status, authErrorText);
+      console.error('PAYNET ERROR', authResponse.status, authErrorText);
       return NextResponse.json(
         {
-          error: 'PAYNET_AUTH_FAILED',
+          error: 'PAYNET_API_ERROR',
+          step: 'auth',
           status: authResponse.status,
           details: authErrorText,
         },
@@ -211,11 +212,9 @@ export async function POST(req: Request) {
           Amount: amount,
         },
       ],
-      LinkUrlSucces: `${callbackUrl.replace('/api/paynet/callback', '')}/multumim?order=${orderId}`,
-      LinkUrlCancel: `${callbackUrl.replace('/api/paynet/callback', '')}/plata?cancel=1`,
     };
 
-    const paymentResponse = await fetch(`${apiHost}/api/Payments`, {
+    const paymentResponse = await fetch(`${apiHost}/api/Payments/Send`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -226,10 +225,11 @@ export async function POST(req: Request) {
 
     if (!paymentResponse.ok) {
       const paymentErrorText = await paymentResponse.text();
-      console.error('PAYNET PAYMENTS ERROR', paymentResponse.status, paymentErrorText);
+      console.error('PAYNET ERROR', paymentResponse.status, paymentErrorText);
       return NextResponse.json(
         {
-          error: 'PAYNET_PAYMENTS_FAILED',
+          error: 'PAYNET_API_ERROR',
+          step: 'payments',
           status: paymentResponse.status,
           details: paymentErrorText,
         },
@@ -244,7 +244,8 @@ export async function POST(req: Request) {
       console.error('PAYNET PAYMENTS PARSE ERROR', e);
       return NextResponse.json(
         {
-          error: 'PAYNET_PAYMENTS_FAILED',
+          error: 'PAYNET_API_ERROR',
+          step: 'payments',
           details: 'Failed to parse payment response',
         },
         { status: 502 }
@@ -252,12 +253,14 @@ export async function POST(req: Request) {
     }
 
     const paymentId = paymentData.PaymentID || paymentData.id || paymentData.ID;
+    const signature = paymentData.Signature || paymentData.signature;
 
     if (!paymentId) {
       console.error('No PaymentID in response:', paymentData);
       return NextResponse.json(
         {
-          error: 'PAYNET_PAYMENTS_FAILED',
+          error: 'PAYNET_API_ERROR',
+          step: 'payments',
           details: 'No PaymentID in response',
         },
         { status: 502 }
@@ -275,12 +278,13 @@ export async function POST(req: Request) {
       // Continue anyway, payment was created
     }
 
-    // Build payment URL
-    const paymentUrl = `${portalHost}/Acquiring/GetEcom?operation=${paymentId}&Lang=ro`;
-
+    // Return payment details for frontend to handle redirect
     return NextResponse.json({
       order_id: orderId,
-      payment_url: paymentUrl,
+      invoice: invoice.toString(),
+      payment_id: paymentId.toString(),
+      signature: signature || null,
+      redirect_base: 'https://test.paynet.md/acquiring/getecom',
     });
   } catch (e) {
     console.error('PAYNET CREATE FATAL', e);

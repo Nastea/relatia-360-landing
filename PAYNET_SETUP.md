@@ -11,7 +11,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 # Paynet Configuration
 PAYNET_ENV=test
-PAYNET_API_HOST_TEST=http://test.paynet.md:4446
+PAYNET_API_HOST_TEST=https://api-merchant.test.paynet.md
 PAYNET_PORTAL_HOST_TEST=https://test.paynet.md
 PAYNET_USERNAME=657846
 PAYNET_PASSWORD=Qckfa3j3
