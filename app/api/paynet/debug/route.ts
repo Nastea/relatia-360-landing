@@ -59,18 +59,53 @@ export async function POST(req: Request) {
       const accessToken = authData.access_token || authData.token;
 
       if (accessToken) {
-        // Test Payments/Send with minimal payload
-        const testPaymentBody = {
-          Invoice: Date.now().toString(),
+        // Test Payments/Send with Reg.json structure
+        const testInvoice = Date.now().toString();
+        const testOrderId = 'test-' + testInvoice;
+        const amountMinor = 100; // 1 MDL in minor units
+
+        const testRegPayload = {
+          Invoice: testInvoice,
           MerchantCode: process.env.PAYNET_MERCHANT_CODE,
-          SaleAreaCode: process.env.PAYNET_SALE_AREA_CODE,
           Currency: 498,
-          Services: [{ Amount: 1 }],
-          Customer: '',
-          Description: 'Test payment',
+          SignVersion: 'v01',
+          LinkUrlSuccess: 'https://liliadubita.md/multumim?order=' + testOrderId,
+          LinkUrlCancel: 'https://liliadubita.md/plata?cancel=1&order=' + testOrderId,
+          ExternalDate: new Date().toISOString(),
+          ExpiryDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+          Customer: {
+            Code: testOrderId,
+            Name: 'Customer',
+            NameFirst: 'Customer',
+            NameLast: 'Customer',
+            email: 'no-reply@liliadubita.md',
+            Country: 'Moldova',
+            City: 'Chisinau',
+            Address: 'Online',
+            PhoneNumber: '00000000',
+          },
+          Services: [
+            {
+              Name: 'RELAȚIA 360',
+              Description: 'Curs practic de comunicare în relații',
+              Amount: amountMinor,
+              Products: [
+                {
+                  LineNo: 1,
+                  Code: 'relatia360',
+                  Barcode: 3601,
+                  Name: 'RELAȚIA 360 – De la conflict la conectare',
+                  Description: 'Acces online',
+                  UnitPrice: amountMinor,
+                  Quantity: 1,
+                  TotalAmount: amountMinor,
+                },
+              ],
+            },
+          ],
         };
 
-        console.log('DEBUG_PAYNET_PAYLOAD', JSON.stringify(testPaymentBody));
+        console.log('DEBUG_PAYNET_REG_PAYLOAD', JSON.stringify(testRegPayload));
 
         const paymentResponse = await fetch(`${apiHost}/api/Payments/Send`, {
           method: 'POST',
@@ -78,7 +113,7 @@ export async function POST(req: Request) {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(testPaymentBody),
+          body: JSON.stringify(testRegPayload),
         });
 
         paymentsStatus = paymentResponse.status;

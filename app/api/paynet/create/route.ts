@@ -202,23 +202,53 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create payment - strict payload for server-to-server
-    const paymentBody: any = {
+    // Build Reg.json payload structure for Payments/Send
+    const baseUrl = callbackUrl.replace('/api/paynet/callback', '');
+    const amountMinor = Math.round(amount * 100); // Convert to minor units (990 MDL -> 99000)
+
+    const regPayload: any = {
       Invoice: invoice.toString(),
       MerchantCode: merchantCode,
-      SaleAreaCode: saleAreaCode,
-      Currency: 498, // MDL (ISO4217)
+      Currency: 498, // MDL
+      SignVersion: 'v01',
+      LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
+      LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
+      ExternalDate: new Date().toISOString(),
+      ExpiryDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // +2 hours
+      Customer: {
+        Code: orderId,
+        Name: 'Customer',
+        NameFirst: 'Customer',
+        NameLast: 'Customer',
+        email: 'no-reply@liliadubita.md',
+        Country: 'Moldova',
+        City: 'Chisinau',
+        Address: 'Online',
+        PhoneNumber: '00000000',
+      },
       Services: [
         {
-          Amount: amount,
+          Name: 'RELAȚIA 360',
+          Description: 'Curs practic de comunicare în relații',
+          Amount: amountMinor,
+          Products: [
+            {
+              LineNo: 1,
+              Code: 'relatia360',
+              Barcode: 3601,
+              Name: 'RELAȚIA 360 – De la conflict la conectare',
+              Description: 'Acces online',
+              UnitPrice: amountMinor,
+              Quantity: 1,
+              TotalAmount: amountMinor,
+            },
+          ],
         },
       ],
-      Customer: '', // Empty string as per Paynet docs
-      Description: 'Relatia 360 - De la conflict la conectare',
     };
 
     // Log payload for debugging (no secrets exposed)
-    console.log('PAYNET_PAYLOAD', JSON.stringify(paymentBody));
+    console.log('PAYNET_REG_PAYLOAD', JSON.stringify(regPayload));
 
     const paymentResponse = await fetch(`${apiHost}/api/Payments/Send`, {
       method: 'POST',
@@ -226,7 +256,7 @@ export async function POST(req: Request) {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(paymentBody),
+      body: JSON.stringify(regPayload),
     });
 
     const paymentResponseText = await paymentResponse.text();
@@ -239,7 +269,7 @@ export async function POST(req: Request) {
           error: 'PAYNET_PAYMENTS_FAILED',
           status: paymentResponse.status,
           details: paymentResponseText,
-          note: 'Check PAYNET_PAYLOAD in Vercel logs',
+          note: 'Check PAYNET_REG_PAYLOAD in Vercel logs',
         },
         { status: 502 }
       );
@@ -268,18 +298,27 @@ export async function POST(req: Request) {
       console.error('No PaymentID in response:', paymentData);
       return NextResponse.json(
         {
-          error: 'PAYNET_API_ERROR',
-          step: 'payments',
-          details: 'No PaymentID in response',
+          error: 'PAYNET_PAYMENTS_FAILED',
+          status: paymentResponse.status,
+          details: paymentResponseText,
+          note: 'No PaymentID in response',
         },
         { status: 502 }
       );
     }
 
-    // Update order with paynet_payment_id
+    // Update order with paynet_payment_id and signature
+    const updateData: any = {
+      paynet_payment_id: Number(paymentId),
+    };
+
+    if (signature) {
+      updateData.paynet_signature = signature;
+    }
+
     const { error: updateError } = await supabaseAdmin
       .from('orders')
-      .update({ paynet_payment_id: Number(paymentId) })
+      .update(updateData)
       .eq('order_id', orderId);
 
     if (updateError) {
