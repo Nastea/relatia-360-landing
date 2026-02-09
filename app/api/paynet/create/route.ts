@@ -212,23 +212,22 @@ export async function POST(req: Request) {
     // Date formatter: ISO without milliseconds and without 'Z'
     const iso = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
-    // Define 12 attempts: try both endpoints, both SignVersions, with/without SaleAreaCode
-    // A-D: /api/Payments/Send (from Postman/Reg.json) - NO SaleAreaCode (matching Reg.json)
-    // E-H: /api/Payments/Send - WITH SaleAreaCode (for v0.5)
-    // I-L: /api/Payments - WITH SaleAreaCode (v0.5 endpoint)
+    // Define attempts: PHP SDK structure (NO Signature, SignVersion, MoneyType, WITH Lang) vs Reg.json structure (WITH them, NO Lang)
+    // Also test JSON vs form-urlencoded
     const attempts = [
-      { id: 'A', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount * 100), includeSaleArea: false, description: '/api/Payments/Send, v01, minor, no SaleAreaCode' },
-      { id: 'B', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount), includeSaleArea: false, description: '/api/Payments/Send, v01, major, no SaleAreaCode' },
-      { id: 'C', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount * 100), includeSaleArea: false, description: '/api/Payments/Send, v05, minor, no SaleAreaCode' },
-      { id: 'D', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount), includeSaleArea: false, description: '/api/Payments/Send, v05, major, no SaleAreaCode' },
-      { id: 'E', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount * 100), includeSaleArea: true, description: '/api/Payments/Send, v01, minor, WITH SaleAreaCode' },
-      { id: 'F', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount), includeSaleArea: true, description: '/api/Payments/Send, v01, major, WITH SaleAreaCode' },
-      { id: 'G', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount * 100), includeSaleArea: true, description: '/api/Payments/Send, v05, minor, WITH SaleAreaCode' },
-      { id: 'H', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount), includeSaleArea: true, description: '/api/Payments/Send, v05, major, WITH SaleAreaCode' },
-      { id: 'I', endpoint: '', signVersion: 'v01', amountValue: Math.round(amount * 100), includeSaleArea: true, description: '/api/Payments, v01, minor, WITH SaleAreaCode' },
-      { id: 'J', endpoint: '', signVersion: 'v01', amountValue: Math.round(amount), includeSaleArea: true, description: '/api/Payments, v01, major, WITH SaleAreaCode' },
-      { id: 'K', endpoint: '', signVersion: 'v05', amountValue: Math.round(amount * 100), includeSaleArea: true, description: '/api/Payments, v05, minor, WITH SaleAreaCode' },
-      { id: 'L', endpoint: '', signVersion: 'v05', amountValue: Math.round(amount), includeSaleArea: true, description: '/api/Payments, v05, major, WITH SaleAreaCode' },
+      // PHP SDK structure: NO Signature, SignVersion, MoneyType, WITH Lang, Payer=Customer object
+      // JSON format
+      { id: 'A', endpoint: 'Send', usePhpSdkStructure: true, useJson: true, amountValue: Math.round(amount * 100), includeSaleArea: false, description: 'PHP SDK structure (no Signature/SignVersion/MoneyType), JSON, minor units' },
+      { id: 'B', endpoint: 'Send', usePhpSdkStructure: true, useJson: true, amountValue: Math.round(amount), includeSaleArea: false, description: 'PHP SDK structure (no Signature/SignVersion/MoneyType), JSON, major units' },
+      
+      // Reg.json structure: WITH Signature, SignVersion, MoneyType, NO Lang, Payer=null
+      // JSON format
+      { id: 'C', endpoint: 'Send', usePhpSdkStructure: false, useJson: true, amountValue: Math.round(amount * 100), includeSaleArea: false, description: 'Reg.json structure (with Signature/SignVersion/MoneyType), JSON, minor units' },
+      { id: 'D', endpoint: 'Send', usePhpSdkStructure: false, useJson: true, amountValue: Math.round(amount), includeSaleArea: false, description: 'Reg.json structure (with Signature/SignVersion/MoneyType), JSON, major units' },
+
+      // Reg.json structure WITH SaleAreaCode
+      { id: 'E', endpoint: 'Send', usePhpSdkStructure: false, useJson: true, amountValue: Math.round(amount * 100), includeSaleArea: true, description: 'Reg.json structure, WITH SaleAreaCode, minor units' },
+      { id: 'F', endpoint: 'Send', usePhpSdkStructure: false, useJson: true, amountValue: Math.round(amount), includeSaleArea: true, description: 'Reg.json structure, WITH SaleAreaCode, major units' },
     ];
 
     const attemptResults: Array<{ attempt: string; status: number; body: string }> = [];
@@ -261,16 +260,12 @@ export async function POST(req: Request) {
         TotalAmount: chosenAmount, // int - should be UnitPrice * (Quantity/100) per PHP SDK calculation
       };
 
-      // Build payload matching Reg.json structure exactly
-      const regPayload: any = {
+      // Build payload - PHP SDK structure vs Reg.json structure
+      const basePayload: any = {
         Invoice: invoiceNumber, // NUMBER (small integer, ~10 digits)
         MerchantCode: merchantCode, // STRING "982657"
-        // Include SaleAreaCode only if attempt.includeSaleArea is true
-        ...(attempt.includeSaleArea && { SaleAreaCode: saleAreaCode }),
         LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
         LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
-        Signature: null,
-        SignVersion: attempt.signVersion, // v01 or v05 per attempt
         Customer: {
           Code: 'no-reply@liliadubita.md', // Email-like as in Reg.json
           Name: 'Customer',
@@ -282,17 +277,6 @@ export async function POST(req: Request) {
           Address: 'Online',
           PhoneNumber: '79306530', // 8-digit numeric string
         },
-        Payer: {
-          Code: 'no-reply@liliadubita.md',
-          Name: 'Customer',
-          NameFirst: 'Customer',
-          NameLast: 'Customer',
-          email: 'no-reply@liliadubita.md',
-          Country: 'Moldova',
-          City: 'Chisinau',
-          Address: 'Online',
-          PhoneNumber: '79306530',
-        }, // Set to Customer object (not null) per PHP SDK
         Currency: 498, // int 498 for MDL
         ExternalDate: iso(new Date()), // "YYYY-MM-DDTHH:mm:ss"
         ExpiryDate: iso(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
@@ -304,23 +288,61 @@ export async function POST(req: Request) {
             Products: [product], // Uppercase Products (matching Reg.json)
           },
         ],
-        MoneyType: null,
+      };
+
+      // PHP SDK structure: NO Signature, SignVersion, MoneyType, WITH Lang, Payer=Customer
+      // Reg.json structure: WITH Signature, SignVersion, MoneyType, NO Lang, Payer=null
+      const regPayload: any = {
+        ...basePayload,
+        ...(attempt.usePhpSdkStructure ? {
+          // PHP SDK structure
+          Payer: {
+            Code: 'no-reply@liliadubita.md',
+            Name: 'Customer',
+            NameFirst: 'Customer',
+            NameLast: 'Customer',
+            email: 'no-reply@liliadubita.md',
+            Country: 'Moldova',
+            City: 'Chisinau',
+            Address: 'Online',
+            PhoneNumber: '79306530',
+          },
+          Lang: 'ro', // PHP SDK includes Lang
+          // NO Signature, SignVersion, MoneyType
+        } : {
+          // Reg.json structure
+          Signature: null,
+          SignVersion: 'v01', // Reg.json uses v01
+          Payer: null, // Reg.json has Payer: null
+          MoneyType: null,
+          // NO Lang
+        }),
+        // Include SaleAreaCode only if attempt.includeSaleArea is true
+        ...(attempt.includeSaleArea && { SaleAreaCode: saleAreaCode }),
       };
 
       // CRITICAL LOGGING: Log the exact payload that will be sent
       console.log('PAYNET_ATTEMPT', attempt.id);
       console.log('PAYNET_PAYLOAD_SENT', JSON.stringify(regPayload));
 
-      // Try this attempt - use the payload built INSIDE this loop
-      // Try both endpoints: /api/Payments/Send (Reg.json) and /api/Payments (v0.5)
+      // Determine endpoint path
       const endpointPath = attempt.endpoint ? `/api/Payments/${attempt.endpoint}` : '/api/Payments';
+
+      // Determine Content-Type and body format
+      // Note: PHP SDK uses form-urlencoded, but Postman uses JSON. Testing JSON first.
+      const contentType = attempt.useJson ? 'application/json' : 'application/x-www-form-urlencoded';
+      const requestBody = attempt.useJson 
+        ? JSON.stringify(regPayload)
+        : JSON.stringify(regPayload); // For now, keep JSON. Form-urlencoded would need nested structure flattening.
+
+      // Try this attempt - use the payload built INSIDE this loop
       const paymentResponse = await fetch(`${apiHost}${endpointPath}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+          'Content-Type': contentType,
         },
-        body: JSON.stringify(regPayload), // Use payload built in this loop iteration
+        body: requestBody,
       });
 
       const paymentResponseText = await paymentResponse.text();
