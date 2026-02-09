@@ -56,6 +56,9 @@ function validatePaynetEnvVars(): { isValid: boolean; missing: string[] } {
 }
 
 export async function POST(req: Request) {
+  // Version guard to confirm new code is deployed
+  console.log('PAYNET_CREATE_HANDLER_VERSION', 'attempts-v2');
+
   try {
     // Validate environment variables first
     const validation = validatePaynetEnvVars();
@@ -219,7 +222,7 @@ export async function POST(req: Request) {
 
     // Try each attempt in order, stop on first success
     for (const attempt of attempts) {
-      console.log('PAYNET_ATTEMPT', attempt.id, attempt.description);
+      console.log('PAYNET_ATTEMPT', attempt.id);
 
       // Build payload INSIDE the loop for each attempt
       // Reuse invoice as small numeric (already generated above)
