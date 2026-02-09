@@ -60,19 +60,23 @@ export async function POST(req: Request) {
 
       if (accessToken) {
         // Test Payments/Send with Reg.json structure
-        const testInvoice = Date.now().toString();
+        const testInvoice = Math.floor(Date.now() / 1000) * 1000 + Math.floor(Math.random() * 1000);
         const testOrderId = 'test-' + testInvoice;
         const amountMinor = 100; // 1 MDL in minor units
 
+        // Normalize date format: ISO without milliseconds and without Z
+        const isoNoMs = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
+
         const testRegPayload = {
-          Invoice: testInvoice,
-          MerchantCode: process.env.PAYNET_MERCHANT_CODE,
+          Invoice: testInvoice, // NUMBER
+          MerchantCode: Number(process.env.PAYNET_MERCHANT_CODE),
+          SaleAreaCode: process.env.PAYNET_SALE_AREA_CODE,
           Currency: 498,
           SignVersion: 'v01',
           LinkUrlSuccess: 'https://liliadubita.md/multumim?order=' + testOrderId,
           LinkUrlCancel: 'https://liliadubita.md/plata?cancel=1&order=' + testOrderId,
-          ExternalDate: new Date().toISOString(),
-          ExpiryDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+          ExternalDate: isoNoMs(new Date()),
+          ExpiryDate: isoNoMs(new Date(Date.now() + 2 * 60 * 60 * 1000)),
           Customer: {
             Code: testOrderId,
             Name: 'Customer',

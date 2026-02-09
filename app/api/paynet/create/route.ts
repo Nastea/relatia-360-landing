@@ -109,8 +109,8 @@ export async function POST(req: Request) {
 
     // Generate order_id and invoice
     const orderId = randomUUID();
-    // Generate invoice with collision avoidance: timestamp * 1000 + random 3 digits
-    const invoice = BigInt(Date.now()) * BigInt(1000) + BigInt(Math.floor(Math.random() * 1000));
+    // Generate invoice as <= 13 digits numeric safe (not BigInt string)
+    const invoice = Math.floor(Date.now() / 1000) * 1000 + Math.floor(Math.random() * 1000);
 
     // Insert into Supabase
     const { data, error: insertError } = await supabaseAdmin
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
         amount: amount,
         currency: currency,
         status: 'pending',
-        invoice: invoice.toString(),
+        invoice: String(invoice),
       })
       .select()
       .single();
@@ -206,15 +206,19 @@ export async function POST(req: Request) {
     const baseUrl = callbackUrl.replace('/api/paynet/callback', '');
     const amountMinor = Math.round(amount * 100); // Convert to minor units (990 MDL -> 99000)
 
+    // Normalize date format: ISO without milliseconds and without Z
+    const isoNoMs = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
+
     const regPayload: any = {
-      Invoice: invoice.toString(),
-      MerchantCode: merchantCode,
+      Invoice: invoice, // Send as NUMBER (not string)
+      MerchantCode: Number(merchantCode), // Ensure numeric
+      SaleAreaCode: saleAreaCode, // Add missing SaleAreaCode
       Currency: 498, // MDL
       SignVersion: 'v01',
       LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
       LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
-      ExternalDate: new Date().toISOString(),
-      ExpiryDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // +2 hours
+      ExternalDate: isoNoMs(new Date()),
+      ExpiryDate: isoNoMs(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
       Customer: {
         Code: orderId,
         Name: 'Customer',
@@ -329,7 +333,7 @@ export async function POST(req: Request) {
     // Return payment details for frontend to handle redirect
     return NextResponse.json({
       order_id: orderId,
-      invoice: invoice.toString(),
+      invoice: String(invoice),
       payment_id: paymentId.toString(),
       signature: signature || null,
       redirect_base: 'https://test.paynet.md/acquiring/getecom',
