@@ -212,18 +212,23 @@ export async function POST(req: Request) {
     // Date formatter: ISO without milliseconds and without 'Z'
     const iso = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
-    // Define 8 attempts: try both endpoints and both SignVersions
-    // A-D: /api/Payments/Send (from Postman/Reg.json)
-    // E-H: /api/Payments (v0.5 endpoint)
+    // Define 12 attempts: try both endpoints, both SignVersions, with/without SaleAreaCode
+    // A-D: /api/Payments/Send (from Postman/Reg.json) - NO SaleAreaCode (matching Reg.json)
+    // E-H: /api/Payments/Send - WITH SaleAreaCode (for v0.5)
+    // I-L: /api/Payments - WITH SaleAreaCode (v0.5 endpoint)
     const attempts = [
-      { id: 'A', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount * 100), description: '/api/Payments/Send, v01, minor units' },
-      { id: 'B', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount), description: '/api/Payments/Send, v01, major units' },
-      { id: 'C', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount * 100), description: '/api/Payments/Send, v05, minor units' },
-      { id: 'D', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount), description: '/api/Payments/Send, v05, major units' },
-      { id: 'E', endpoint: '', signVersion: 'v01', amountValue: Math.round(amount * 100), description: '/api/Payments, v01, minor units' },
-      { id: 'F', endpoint: '', signVersion: 'v01', amountValue: Math.round(amount), description: '/api/Payments, v01, major units' },
-      { id: 'G', endpoint: '', signVersion: 'v05', amountValue: Math.round(amount * 100), description: '/api/Payments, v05, minor units' },
-      { id: 'H', endpoint: '', signVersion: 'v05', amountValue: Math.round(amount), description: '/api/Payments, v05, major units' },
+      { id: 'A', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount * 100), includeSaleArea: false, description: '/api/Payments/Send, v01, minor, no SaleAreaCode' },
+      { id: 'B', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount), includeSaleArea: false, description: '/api/Payments/Send, v01, major, no SaleAreaCode' },
+      { id: 'C', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount * 100), includeSaleArea: false, description: '/api/Payments/Send, v05, minor, no SaleAreaCode' },
+      { id: 'D', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount), includeSaleArea: false, description: '/api/Payments/Send, v05, major, no SaleAreaCode' },
+      { id: 'E', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount * 100), includeSaleArea: true, description: '/api/Payments/Send, v01, minor, WITH SaleAreaCode' },
+      { id: 'F', endpoint: 'Send', signVersion: 'v01', amountValue: Math.round(amount), includeSaleArea: true, description: '/api/Payments/Send, v01, major, WITH SaleAreaCode' },
+      { id: 'G', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount * 100), includeSaleArea: true, description: '/api/Payments/Send, v05, minor, WITH SaleAreaCode' },
+      { id: 'H', endpoint: 'Send', signVersion: 'v05', amountValue: Math.round(amount), includeSaleArea: true, description: '/api/Payments/Send, v05, major, WITH SaleAreaCode' },
+      { id: 'I', endpoint: '', signVersion: 'v01', amountValue: Math.round(amount * 100), includeSaleArea: true, description: '/api/Payments, v01, minor, WITH SaleAreaCode' },
+      { id: 'J', endpoint: '', signVersion: 'v01', amountValue: Math.round(amount), includeSaleArea: true, description: '/api/Payments, v01, major, WITH SaleAreaCode' },
+      { id: 'K', endpoint: '', signVersion: 'v05', amountValue: Math.round(amount * 100), includeSaleArea: true, description: '/api/Payments, v05, minor, WITH SaleAreaCode' },
+      { id: 'L', endpoint: '', signVersion: 'v05', amountValue: Math.round(amount), includeSaleArea: true, description: '/api/Payments, v05, major, WITH SaleAreaCode' },
     ];
 
     const attemptResults: Array<{ attempt: string; status: number; body: string }> = [];
@@ -256,12 +261,12 @@ export async function POST(req: Request) {
         TotalAmount: chosenAmount, // int - sum of UnitPrice * Quantity
       };
 
-      // Build payload matching Reg.json structure (with v05 SignVersion)
-      // Note: SaleAreaCode might be required for v0.5 API
+      // Build payload matching Reg.json structure exactly
       const regPayload: any = {
         Invoice: invoiceNumber, // NUMBER (small integer, ~10 digits)
         MerchantCode: merchantCode, // STRING "982657"
-        SaleAreaCode: saleAreaCode, // Include SaleAreaCode (might be required for v0.5)
+        // Include SaleAreaCode only if attempt.includeSaleArea is true
+        ...(attempt.includeSaleArea && { SaleAreaCode: saleAreaCode }),
         LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
         LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
         Signature: null,
