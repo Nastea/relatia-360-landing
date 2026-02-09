@@ -29,6 +29,14 @@ export default function PlataPage() {
 
       const data = await response.json();
 
+      if (!response.ok) {
+        // Handle error response
+        const errorMsg = data.details || data.error || 'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.';
+        setError(errorMsg);
+        setIsLoading(false);
+        return;
+      }
+
       if (data.payment_id && data.redirect_base) {
         // Frontend will handle POST/redirect later
         // For now, redirect to Paynet form
