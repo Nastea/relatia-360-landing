@@ -109,8 +109,8 @@ export async function POST(req: Request) {
 
     // Generate order_id and invoice
     const orderId = randomUUID();
-    // Generate invoice as <= 13 digits numeric safe (not BigInt string)
-    const invoice = Math.floor(Date.now() / 1000) * 1000 + Math.floor(Math.random() * 1000);
+    // Generate invoice as small integer (10 digits max) matching Reg.json style
+    const invoice = Math.floor(Date.now() / 1000);
 
     // Insert into Supabase
     const { data, error: insertError } = await supabaseAdmin
@@ -206,51 +206,37 @@ export async function POST(req: Request) {
     const baseUrl = callbackUrl.replace('/api/paynet/callback', '');
     const amountMinor = Math.round(amount * 100); // Convert to minor units (990 MDL -> 99000)
 
-    // Normalize date format: "YYYY-MM-DDTHH:mm:ss" (no milliseconds, no Z)
-    const formatDate = (d: Date) => {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      const seconds = String(d.getSeconds()).padStart(2, '0');
-      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-    };
+    // Normalize date format: ISO without milliseconds and WITHOUT "Z"
+    const isoNoMsNoZ = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
-    // Product with all required fields matching Reg.json template
+    // Product with ALL fields in EXACT order matching Reg.json template
     const productTotalAmount = amountMinor; // Single product, so total = unit price * quantity
     const product = {
+      GroupName: null,
+      QualitiesConcat: null,
       LineNo: 1,
+      GroupId: null,
       Code: 'relatia360',
       Barcode: 3601,
       Name: 'RELAȚIA 360 – De la conflict la conectare',
       Description: 'Acces online',
       UnitPrice: amountMinor, // Integer
-      Quantity: 1, // Integer
-      TotalAmount: productTotalAmount, // Integer
-      // Extra fields from Reg.json template (set to null)
-      GroupName: null,
-      QualitiesConcat: null,
-      GroupId: null,
-      Amount: null,
       UnitProduct: null,
+      Quantity: 1, // Integer
+      Amount: null,
       Dimensions: null,
       Qualities: null,
+      TotalAmount: productTotalAmount, // Integer
     };
 
+    // Build payload with keys in EXACT order matching Reg.json
     const regPayload: any = {
-      Invoice: invoice, // NUMBER
+      Invoice: invoice, // NUMBER (small integer, 10 digits max)
       MerchantCode: merchantCode, // STRING (not Number())
-      SaleAreaCode: saleAreaCode,
-      Currency: 498, // MDL
-      SignVersion: 'v01',
-      Signature: null, // Required field from Reg.json
-      Payer: null, // Required field from Reg.json
-      MoneyType: null, // Required field from Reg.json
       LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
       LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
-      ExternalDate: formatDate(new Date()),
-      ExpiryDate: formatDate(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
+      Signature: null,
+      SignVersion: 'v01',
       Customer: {
         Code: 'no-reply@liliadubita.md', // Email-like string as per Reg.json example
         Name: 'Customer',
@@ -262,6 +248,10 @@ export async function POST(req: Request) {
         Address: 'Online',
         PhoneNumber: '79306530', // 8 digits numeric phone
       },
+      Payer: null,
+      Currency: 498, // MDL
+      ExternalDate: isoNoMsNoZ(new Date()),
+      ExpiryDate: isoNoMsNoZ(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
       Services: [
         {
           Name: 'RELAȚIA 360',
@@ -270,6 +260,7 @@ export async function POST(req: Request) {
           Products: [product],
         },
       ],
+      MoneyType: null,
     };
 
     // Log payload for debugging (no secrets exposed)
