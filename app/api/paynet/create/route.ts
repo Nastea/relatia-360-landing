@@ -148,11 +148,13 @@ export async function POST(req: Request) {
     const saleAreaCode = process.env.PAYNET_SALE_AREA_CODE!;
     const callbackUrl = process.env.PAYNET_CALLBACK_URL!;
 
-    // Authenticate with Paynet
+    // Authenticate with Paynet (include salearea in auth per Postman example)
     const authParams = new URLSearchParams({
       grant_type: 'password',
       username: process.env.PAYNET_USERNAME!,
       password: process.env.PAYNET_PASSWORD!,
+      merchantcode: merchantCode,
+      salearea: saleAreaCode,
     });
 
     const authResponse = await fetch(`${apiHost}/auth`, {
@@ -255,9 +257,11 @@ export async function POST(req: Request) {
       };
 
       // Build payload matching Reg.json structure (with v05 SignVersion)
+      // Note: SaleAreaCode might be required for v0.5 API
       const regPayload: any = {
         Invoice: invoiceNumber, // NUMBER (small integer, ~10 digits)
         MerchantCode: merchantCode, // STRING "982657"
+        SaleAreaCode: saleAreaCode, // Include SaleAreaCode (might be required for v0.5)
         LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
         LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
         Signature: null,
