@@ -162,7 +162,8 @@ export async function POST(req: Request) {
 
     if (!authResponse.ok) {
       const authErrorText = await authResponse.text();
-      console.error('PAYNET ERROR', authResponse.status, authErrorText);
+      console.error('PAYNET AUTH STATUS', authResponse.status);
+      console.error('PAYNET AUTH BODY', authErrorText);
       return NextResponse.json(
         {
           error: 'PAYNET_API_ERROR',
@@ -201,18 +202,23 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create payment
+    // Create payment - strict payload for server-to-server
     const paymentBody: any = {
       Invoice: invoice.toString(),
       MerchantCode: merchantCode,
       SaleAreaCode: saleAreaCode,
-      Currency: 498, // MDL
+      Currency: 498, // MDL (ISO4217)
       Services: [
         {
           Amount: amount,
         },
       ],
+      Customer: '', // Empty string as per Paynet docs
+      Description: 'Relatia 360 - De la conflict la conectare',
     };
+
+    // Log payload for debugging (no secrets exposed)
+    console.log('PAYNET_PAYLOAD', JSON.stringify(paymentBody));
 
     const paymentResponse = await fetch(`${apiHost}/api/Payments/Send`, {
       method: 'POST',
@@ -223,15 +229,17 @@ export async function POST(req: Request) {
       body: JSON.stringify(paymentBody),
     });
 
+    const paymentResponseText = await paymentResponse.text();
+    console.log('PAYNET_PAYMENTS_STATUS', paymentResponse.status);
+    console.log('PAYNET_PAYMENTS_BODY', paymentResponseText);
+
     if (!paymentResponse.ok) {
-      const paymentErrorText = await paymentResponse.text();
-      console.error('PAYNET ERROR', paymentResponse.status, paymentErrorText);
       return NextResponse.json(
         {
-          error: 'PAYNET_API_ERROR',
-          step: 'payments',
+          error: 'PAYNET_PAYMENTS_FAILED',
           status: paymentResponse.status,
-          details: paymentErrorText,
+          details: paymentResponseText,
+          note: 'Check PAYNET_PAYLOAD in Vercel logs',
         },
         { status: 502 }
       );
@@ -239,14 +247,15 @@ export async function POST(req: Request) {
 
     let paymentData;
     try {
-      paymentData = await paymentResponse.json();
+      paymentData = JSON.parse(paymentResponseText);
     } catch (e) {
       console.error('PAYNET PAYMENTS PARSE ERROR', e);
       return NextResponse.json(
         {
-          error: 'PAYNET_API_ERROR',
-          step: 'payments',
-          details: 'Failed to parse payment response',
+          error: 'PAYNET_PAYMENTS_FAILED',
+          status: paymentResponse.status,
+          details: paymentResponseText,
+          note: 'Failed to parse payment response as JSON',
         },
         { status: 502 }
       );
