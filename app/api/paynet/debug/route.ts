@@ -62,13 +62,13 @@ export async function POST(req: Request) {
         // Test Payments/Send with Reg.json structure
         const testInvoice = Math.floor(Date.now() / 1000); // Small integer (10 digits max)
         const testOrderId = 'test-' + testInvoice;
-        const amountMinor = 100; // 1 MDL in minor units
+        const amountValue = 1; // Use amount directly (1 MDL, not 100 minor units)
 
         // Normalize date format: ISO without milliseconds and WITHOUT "Z"
         const isoNoMsNoZ = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
         // Product with ALL fields in EXACT order matching Reg.json template
-        const productTotalAmount = amountMinor;
+        const productTotalAmount = amountValue;
         const product = {
           GroupName: null,
           QualitiesConcat: null,
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
           Barcode: 3601,
           Name: 'RELAȚIA 360 – De la conflict la conectare',
           Description: 'Acces online',
-          UnitPrice: amountMinor, // Integer
+          UnitPrice: amountValue, // Integer (1, not 100)
           UnitProduct: null,
           Quantity: 1, // Integer
           Amount: null,
@@ -114,7 +114,7 @@ export async function POST(req: Request) {
             {
               Name: 'RELAȚIA 360',
               Description: 'Curs practic de comunicare în relații',
-              Amount: productTotalAmount, // Must equal sum of Products[].TotalAmount
+              Amount: productTotalAmount, // Must equal sum of Products[].TotalAmount (1, not 100)
               Products: [product],
             },
           ],

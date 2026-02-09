@@ -204,13 +204,15 @@ export async function POST(req: Request) {
 
     // Build Reg.json payload structure for Payments/Send
     const baseUrl = callbackUrl.replace('/api/paynet/callback', '');
-    const amountMinor = Math.round(amount * 100); // Convert to minor units (990 MDL -> 99000)
+    // Try using amount directly (990) instead of minor units (99000)
+    // If this still fails, we may need to check Paynet docs for correct format
+    const amountValue = Math.round(amount); // Use amount directly (990 MDL, not 99000)
 
     // Normalize date format: ISO without milliseconds and WITHOUT "Z"
     const isoNoMsNoZ = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
     // Product with ALL fields in EXACT order matching Reg.json template
-    const productTotalAmount = amountMinor; // Single product, so total = unit price * quantity
+    const productTotalAmount = amountValue; // Single product, so total = unit price * quantity
     const product = {
       GroupName: null,
       QualitiesConcat: null,
@@ -220,7 +222,7 @@ export async function POST(req: Request) {
       Barcode: 3601,
       Name: 'RELAȚIA 360 – De la conflict la conectare',
       Description: 'Acces online',
-      UnitPrice: amountMinor, // Integer
+      UnitPrice: amountValue, // Integer (990, not 99000)
       UnitProduct: null,
       Quantity: 1, // Integer
       Amount: null,
@@ -256,7 +258,7 @@ export async function POST(req: Request) {
         {
           Name: 'RELAȚIA 360',
           Description: 'Curs practic de comunicare în relații',
-          Amount: productTotalAmount, // Must equal sum of Products[].TotalAmount
+          Amount: productTotalAmount, // Must equal sum of Products[].TotalAmount (990, not 99000)
           Products: [product],
         },
       ],
