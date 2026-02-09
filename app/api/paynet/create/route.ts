@@ -63,39 +63,57 @@ export async function POST(req: Request) {
       console.error('Missing Paynet environment variables:', validation.missing.join(', '));
       return NextResponse.json(
         {
-          error: 'Paynet configuration missing',
+          error: 'PAYNET_CONFIG_MISSING',
           missing: validation.missing,
         },
         { status: 500 }
       );
     }
 
-    const body = await req.json();
+    // Parse and validate request body
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return NextResponse.json(
+        {
+          error: 'BAD_REQUEST',
+          details: 'Invalid JSON in request body',
+        },
+        { status: 400 }
+      );
+    }
+
     const { productId, amount, currency = 'MDL' } = body;
 
-    // Validation
+    // Body validation
     if (!productId || typeof productId !== 'string' || productId.trim() === '') {
       return NextResponse.json(
-        { error: 'productId is required and must be a non-empty string' },
+        {
+          error: 'BAD_REQUEST',
+          details: 'productId is required and must be a non-empty string',
+        },
         { status: 400 }
       );
     }
 
     if (!amount || typeof amount !== 'number' || amount <= 0) {
       return NextResponse.json(
-        { error: 'amount is required and must be a positive number' },
+        {
+          error: 'BAD_REQUEST',
+          details: 'amount is required and must be a positive number',
+        },
         { status: 400 }
       );
     }
 
     // Generate order_id and invoice
     const orderId = randomUUID();
-    // Generate invoice with collision avoidance: timestamp + random 3 digits
-    const invoiceStr = `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
-    const invoice = Number(invoiceStr); // Keep as number for Supabase BIGINT
+    // Generate invoice with collision avoidance: timestamp * 1000 + random 3 digits
+    const invoice = BigInt(Date.now()) * BigInt(1000) + BigInt(Math.floor(Math.random() * 1000));
 
     // Insert into Supabase
-    const { data, error } = await supabaseAdmin
+    const { data, error: insertError } = await supabaseAdmin
       .from('orders')
       .insert({
         order_id: orderId,
@@ -103,17 +121,19 @@ export async function POST(req: Request) {
         amount: amount,
         currency: currency,
         status: 'pending',
-        invoice: invoice,
+        invoice: invoice.toString(),
       })
       .select()
       .single();
 
-    if (error) {
-      console.error('Supabase insert error:', error);
+    if (insertError) {
+      console.error('SUPABASE INSERT ERROR', insertError);
       return NextResponse.json(
-        { 
-          error: 'Failed to create order',
-          details: error.message || 'Unknown database error'
+        {
+          error: 'SUPABASE_INSERT_FAILED',
+          details: insertError.message,
+          code: insertError.code ?? null,
+          hint: insertError.hint ?? null,
         },
         { status: 500 }
       );
@@ -141,27 +161,48 @@ export async function POST(req: Request) {
     });
 
     if (!authResponse.ok) {
-      console.error('Paynet auth failed:', authResponse.status, await authResponse.text());
+      const authErrorText = await authResponse.text();
+      console.error('PAYNET AUTH ERROR', authResponse.status, authErrorText);
       return NextResponse.json(
-        { error: 'Failed to authenticate with Paynet' },
-        { status: 500 }
+        {
+          error: 'PAYNET_AUTH_FAILED',
+          status: authResponse.status,
+          details: authErrorText,
+        },
+        { status: 502 }
       );
     }
 
-    const authData = await authResponse.json();
+    let authData;
+    try {
+      authData = await authResponse.json();
+    } catch (e) {
+      console.error('PAYNET AUTH PARSE ERROR', e);
+      return NextResponse.json(
+        {
+          error: 'PAYNET_AUTH_FAILED',
+          details: 'Failed to parse auth response',
+        },
+        { status: 502 }
+      );
+    }
+
     const accessToken = authData.access_token || authData.token;
 
     if (!accessToken) {
       console.error('No access token in auth response:', authData);
       return NextResponse.json(
-        { error: 'Failed to get access token from Paynet' },
-        { status: 500 }
+        {
+          error: 'PAYNET_AUTH_FAILED',
+          details: 'No access_token in response',
+        },
+        { status: 502 }
       );
     }
 
     // Create payment
     const paymentBody: any = {
-      Invoice: invoice,
+      Invoice: invoice.toString(),
       MerchantCode: merchantCode,
       SaleAreaCode: saleAreaCode,
       Currency: 498, // MDL
@@ -184,34 +225,43 @@ export async function POST(req: Request) {
     });
 
     if (!paymentResponse.ok) {
-      const errorText = await paymentResponse.text();
-      console.error('Paynet payment creation failed:', paymentResponse.status, errorText);
-      
-      // Return a fallback payment URL to keep /plata flow working
-      // This allows testing even if Paynet API isn't fully configured
-      const fallbackPaymentUrl = `${portalHost}/Acquiring/GetEcom?operation=test&Lang=ro`;
-      
-      return NextResponse.json({
-        order_id: orderId,
-        payment_url: fallbackPaymentUrl,
-        warning: 'Paynet API call failed, using fallback URL',
-      });
+      const paymentErrorText = await paymentResponse.text();
+      console.error('PAYNET PAYMENTS ERROR', paymentResponse.status, paymentErrorText);
+      return NextResponse.json(
+        {
+          error: 'PAYNET_PAYMENTS_FAILED',
+          status: paymentResponse.status,
+          details: paymentErrorText,
+        },
+        { status: 502 }
+      );
     }
 
-    const paymentData = await paymentResponse.json();
+    let paymentData;
+    try {
+      paymentData = await paymentResponse.json();
+    } catch (e) {
+      console.error('PAYNET PAYMENTS PARSE ERROR', e);
+      return NextResponse.json(
+        {
+          error: 'PAYNET_PAYMENTS_FAILED',
+          details: 'Failed to parse payment response',
+        },
+        { status: 502 }
+      );
+    }
+
     const paymentId = paymentData.PaymentID || paymentData.id || paymentData.ID;
 
     if (!paymentId) {
       console.error('No PaymentID in response:', paymentData);
-      
-      // Return a fallback payment URL to keep /plata flow working
-      const fallbackPaymentUrl = `${portalHost}/Acquiring/GetEcom?operation=test&Lang=ro`;
-      
-      return NextResponse.json({
-        order_id: orderId,
-        payment_url: fallbackPaymentUrl,
-        warning: 'No PaymentID received, using fallback URL',
-      });
+      return NextResponse.json(
+        {
+          error: 'PAYNET_PAYMENTS_FAILED',
+          details: 'No PaymentID in response',
+        },
+        { status: 502 }
+      );
     }
 
     // Update order with paynet_payment_id
@@ -232,10 +282,13 @@ export async function POST(req: Request) {
       order_id: orderId,
       payment_url: paymentUrl,
     });
-  } catch (error) {
-    console.error('API error:', error);
+  } catch (e) {
+    console.error('PAYNET CREATE FATAL', e);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: String((e as any)?.message ?? e),
+      },
       { status: 500 }
     );
   }
