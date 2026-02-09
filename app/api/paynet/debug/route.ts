@@ -64,21 +64,52 @@ export async function POST(req: Request) {
         const testOrderId = 'test-' + testInvoice;
         const amountMinor = 100; // 1 MDL in minor units
 
-        // Normalize date format: ISO without milliseconds and without Z
-        const isoNoMs = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
+        // Normalize date format: "YYYY-MM-DDTHH:mm:ss" (no milliseconds, no Z)
+        const formatDate = (d: Date) => {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          const hours = String(d.getHours()).padStart(2, '0');
+          const minutes = String(d.getMinutes()).padStart(2, '0');
+          const seconds = String(d.getSeconds()).padStart(2, '0');
+          return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        };
+
+        // Product with all required fields matching Reg.json template
+        const productTotalAmount = amountMinor;
+        const product = {
+          LineNo: 1,
+          Code: 'relatia360',
+          Barcode: 3601,
+          Name: 'RELAȚIA 360 – De la conflict la conectare',
+          Description: 'Acces online',
+          UnitPrice: amountMinor, // Integer
+          Quantity: 1, // Integer
+          TotalAmount: productTotalAmount, // Integer
+          GroupName: null,
+          QualitiesConcat: null,
+          GroupId: null,
+          Amount: null,
+          UnitProduct: null,
+          Dimensions: null,
+          Qualities: null,
+        };
 
         const testRegPayload = {
           Invoice: testInvoice, // NUMBER
-          MerchantCode: Number(process.env.PAYNET_MERCHANT_CODE),
+          MerchantCode: process.env.PAYNET_MERCHANT_CODE, // STRING
           SaleAreaCode: process.env.PAYNET_SALE_AREA_CODE,
           Currency: 498,
           SignVersion: 'v01',
+          Signature: null,
+          Payer: null,
+          MoneyType: null,
           LinkUrlSuccess: 'https://liliadubita.md/multumim?order=' + testOrderId,
           LinkUrlCancel: 'https://liliadubita.md/plata?cancel=1&order=' + testOrderId,
-          ExternalDate: isoNoMs(new Date()),
-          ExpiryDate: isoNoMs(new Date(Date.now() + 2 * 60 * 60 * 1000)),
+          ExternalDate: formatDate(new Date()),
+          ExpiryDate: formatDate(new Date(Date.now() + 2 * 60 * 60 * 1000)),
           Customer: {
-            Code: testOrderId,
+            Code: 'no-reply@liliadubita.md',
             Name: 'Customer',
             NameFirst: 'Customer',
             NameLast: 'Customer',
@@ -86,25 +117,14 @@ export async function POST(req: Request) {
             Country: 'Moldova',
             City: 'Chisinau',
             Address: 'Online',
-            PhoneNumber: '00000000',
+            PhoneNumber: '79306530', // 8 digits
           },
           Services: [
             {
               Name: 'RELAȚIA 360',
               Description: 'Curs practic de comunicare în relații',
-              Amount: amountMinor,
-              Products: [
-                {
-                  LineNo: 1,
-                  Code: 'relatia360',
-                  Barcode: 3601,
-                  Name: 'RELAȚIA 360 – De la conflict la conectare',
-                  Description: 'Acces online',
-                  UnitPrice: amountMinor,
-                  Quantity: 1,
-                  TotalAmount: amountMinor,
-                },
-              ],
+              Amount: productTotalAmount, // Must equal sum of Products[].TotalAmount
+              Products: [product],
             },
           ],
         };

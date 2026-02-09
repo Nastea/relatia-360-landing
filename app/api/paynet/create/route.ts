@@ -206,21 +206,53 @@ export async function POST(req: Request) {
     const baseUrl = callbackUrl.replace('/api/paynet/callback', '');
     const amountMinor = Math.round(amount * 100); // Convert to minor units (990 MDL -> 99000)
 
-    // Normalize date format: ISO without milliseconds and without Z
-    const isoNoMs = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
+    // Normalize date format: "YYYY-MM-DDTHH:mm:ss" (no milliseconds, no Z)
+    const formatDate = (d: Date) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const seconds = String(d.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
+    // Product with all required fields matching Reg.json template
+    const productTotalAmount = amountMinor; // Single product, so total = unit price * quantity
+    const product = {
+      LineNo: 1,
+      Code: 'relatia360',
+      Barcode: 3601,
+      Name: 'RELAȚIA 360 – De la conflict la conectare',
+      Description: 'Acces online',
+      UnitPrice: amountMinor, // Integer
+      Quantity: 1, // Integer
+      TotalAmount: productTotalAmount, // Integer
+      // Extra fields from Reg.json template (set to null)
+      GroupName: null,
+      QualitiesConcat: null,
+      GroupId: null,
+      Amount: null,
+      UnitProduct: null,
+      Dimensions: null,
+      Qualities: null,
+    };
 
     const regPayload: any = {
-      Invoice: invoice, // Send as NUMBER (not string)
-      MerchantCode: Number(merchantCode), // Ensure numeric
-      SaleAreaCode: saleAreaCode, // Add missing SaleAreaCode
+      Invoice: invoice, // NUMBER
+      MerchantCode: merchantCode, // STRING (not Number())
+      SaleAreaCode: saleAreaCode,
       Currency: 498, // MDL
       SignVersion: 'v01',
+      Signature: null, // Required field from Reg.json
+      Payer: null, // Required field from Reg.json
+      MoneyType: null, // Required field from Reg.json
       LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
       LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
-      ExternalDate: isoNoMs(new Date()),
-      ExpiryDate: isoNoMs(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
+      ExternalDate: formatDate(new Date()),
+      ExpiryDate: formatDate(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
       Customer: {
-        Code: orderId,
+        Code: 'no-reply@liliadubita.md', // Email-like string as per Reg.json example
         Name: 'Customer',
         NameFirst: 'Customer',
         NameLast: 'Customer',
@@ -228,25 +260,14 @@ export async function POST(req: Request) {
         Country: 'Moldova',
         City: 'Chisinau',
         Address: 'Online',
-        PhoneNumber: '00000000',
+        PhoneNumber: '79306530', // 8 digits numeric phone
       },
       Services: [
         {
           Name: 'RELAȚIA 360',
           Description: 'Curs practic de comunicare în relații',
-          Amount: amountMinor,
-          Products: [
-            {
-              LineNo: 1,
-              Code: 'relatia360',
-              Barcode: 3601,
-              Name: 'RELAȚIA 360 – De la conflict la conectare',
-              Description: 'Acces online',
-              UnitPrice: amountMinor,
-              Quantity: 1,
-              TotalAmount: amountMinor,
-            },
-          ],
+          Amount: productTotalAmount, // Must equal sum of Products[].TotalAmount
+          Products: [product],
         },
       ],
     };
