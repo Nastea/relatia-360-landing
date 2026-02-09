@@ -254,11 +254,11 @@ export async function POST(req: Request) {
         Description: 'Acces online',
         UnitPrice: chosenAmount, // int
         UnitProduct: null,
-        Quantity: 1, // int
+        Quantity: 100, // int - in minor units (100 = 1.00) per Reg.json example where 200 = 2.00
         Amount: null,
         Dimensions: null,
         Qualities: null,
-        TotalAmount: chosenAmount, // int - sum of UnitPrice * Quantity
+        TotalAmount: chosenAmount, // int - should be UnitPrice * (Quantity/100) per PHP SDK calculation
       };
 
       // Build payload matching Reg.json structure exactly
@@ -282,7 +282,17 @@ export async function POST(req: Request) {
           Address: 'Online',
           PhoneNumber: '79306530', // 8-digit numeric string
         },
-        Payer: null,
+        Payer: {
+          Code: 'no-reply@liliadubita.md',
+          Name: 'Customer',
+          NameFirst: 'Customer',
+          NameLast: 'Customer',
+          email: 'no-reply@liliadubita.md',
+          Country: 'Moldova',
+          City: 'Chisinau',
+          Address: 'Online',
+          PhoneNumber: '79306530',
+        }, // Set to Customer object (not null) per PHP SDK
         Currency: 498, // int 498 for MDL
         ExternalDate: iso(new Date()), // "YYYY-MM-DDTHH:mm:ss"
         ExpiryDate: iso(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
