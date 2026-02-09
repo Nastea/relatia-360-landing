@@ -230,29 +230,30 @@ export async function POST(req: Request) {
       const invoiceNumber = invoice; // Small number, ~10 digits
 
       // Build product with current attempt's amount (API v0.5 spec)
-      // Do NOT send nulls for numeric fields - only include required fields
+      // Do NOT send nulls - use strings/numbers as per spec
+      const chosenAmount = attempt.amountValue;
       const product = {
-        LineNo: 1,
-        Code: 'relatia360',
-        Barcode: 3601,
+        Amount: chosenAmount, // int
+        Barcode: 3601, // int
+        Code: 'relatia360', // string
+        Description: 'Acces online', // string
+        GroupId: '1', // string (avoid null)
+        GroupName: 'COURSE', // string (avoid null)
+        LineNo: 1, // int
         Name: 'RELAȚIA 360 – De la conflict la conectare',
-        Description: 'Acces online',
-        GroupId: null, // Can be null
-        GroupName: null, // Can be null
-        UnitPrice: attempt.amountValue, // Integer (no null)
-        UnitProduct: 'pcs', // String per API v0.5 spec
-        Quantity: 1, // Integer (no null)
-        Amount: attempt.amountValue, // Integer (no null)
+        UnitPrice: chosenAmount, // int
+        UnitProduct: 1, // int (NOT "pcs")
+        Quantity: 1, // int
       };
 
-      // Build payload matching API v0.5 spec for /api/Payments
+      // Build payload matching API v0.5 spec exactly for /api/Payments
       const regPayload: any = {
         Invoice: invoiceNumber, // NUMBER (small integer, ~10 digits)
         Currency: 498, // Always int 498 for MDL per API v0.5
         MerchantCode: merchantCode, // STRING "982657"
         SaleAreaCode: saleAreaCode || '', // String, can be empty
         Customer: {
-          Code: 'no-reply@liliadubita.md',
+          Code: 'Customer Code',
           NameFirst: 'Customer',
           NameLast: 'Customer',
           PhoneNumber: '79306530', // 8-digit numeric string
@@ -267,14 +268,16 @@ export async function POST(req: Request) {
             Name: 'RELAȚIA 360',
             Description: 'Curs practic de comunicare în relații',
             products: [product], // lowercase "products" per API v0.5 spec
+            amount: chosenAmount, // IMPORTANT: lowercase "amount" at service level
           },
         ],
         SignVersion: 'v05', // API v0.5
+        MoneyType: { Code: 'PAYNET' }, // IMPORTANT: object, not null
       };
 
       // CRITICAL LOGGING: Log the exact payload that will be sent
       console.log('PAYNET_ATTEMPT', attempt.id);
-      console.log('PAYNET_REG_PAYLOAD_SENT', JSON.stringify(regPayload));
+      console.log('PAYNET_PAYLOAD_SENT', JSON.stringify(regPayload));
 
       // Try this attempt - use the payload built INSIDE this loop
       // API v0.5: Use /api/Payments (NOT /api/Payments/Send)
