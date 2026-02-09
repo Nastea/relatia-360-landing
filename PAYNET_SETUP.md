@@ -9,13 +9,21 @@ Add these to your Vercel project settings and local `.env.local`:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# Paynet API
-PAYNET_API_HOST=https://api.paynet.md
-PAYNET_PORTAL_HOST=https://paynet.md
-PAYNET_MERCHANT_CODE=your_merchant_code
-PAYNET_USERNAME=your_username
-PAYNET_PASSWORD=your_password
-PAYNET_SECRET_KEY=your_secret_key
+# Paynet Configuration
+PAYNET_ENV=test
+PAYNET_API_HOST_TEST=http://test.paynet.md:4446
+PAYNET_PORTAL_HOST_TEST=https://test.paynet.md
+PAYNET_USERNAME=657846
+PAYNET_PASSWORD=Qckfa3j3
+PAYNET_MERCHANT_CODE=982657
+PAYNET_SALE_AREA_CODE=https_liliadubita_md
+PAYNET_NOTIFY_SECRET_KEY_TEST=A7E76D12-2690-4BBE-A5F2-1F26FDEB2738
+PAYNET_CALLBACK_URL=https://liliadubita.md/api/paynet/callback
+
+# For LIVE mode (when PAYNET_ENV=live):
+# PAYNET_API_HOST_LIVE=...
+# PAYNET_PORTAL_HOST_LIVE=...
+# PAYNET_NOTIFY_SECRET_KEY_LIVE=...
 ```
 
 ## Database Migration

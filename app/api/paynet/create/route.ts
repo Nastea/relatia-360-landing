@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getApiHost, getPortalHost } from '@/lib/paynet';
 import { randomUUID } from 'crypto';
 
 function validatePaynetEnvVars(): { isValid: boolean; missing: string[] } {
@@ -11,6 +12,8 @@ function validatePaynetEnvVars(): { isValid: boolean; missing: string[] } {
     'PAYNET_USERNAME',
     'PAYNET_PASSWORD',
     'PAYNET_MERCHANT_CODE',
+    'PAYNET_SALE_AREA_CODE',
+    'PAYNET_CALLBACK_URL',
   ];
 
   // Check required vars
@@ -30,6 +33,9 @@ function validatePaynetEnvVars(): { isValid: boolean; missing: string[] } {
     if (!process.env.PAYNET_PORTAL_HOST_LIVE) {
       missing.push('PAYNET_PORTAL_HOST_LIVE');
     }
+    if (!process.env.PAYNET_NOTIFY_SECRET_KEY_LIVE) {
+      missing.push('PAYNET_NOTIFY_SECRET_KEY_LIVE');
+    }
   } else {
     // Test mode (default)
     if (!process.env.PAYNET_API_HOST_TEST) {
@@ -38,28 +44,14 @@ function validatePaynetEnvVars(): { isValid: boolean; missing: string[] } {
     if (!process.env.PAYNET_PORTAL_HOST_TEST) {
       missing.push('PAYNET_PORTAL_HOST_TEST');
     }
+    if (!process.env.PAYNET_NOTIFY_SECRET_KEY_TEST) {
+      missing.push('PAYNET_NOTIFY_SECRET_KEY_TEST');
+    }
   }
 
   return {
     isValid: missing.length === 0,
     missing,
-  };
-}
-
-function getPaynetConfig() {
-  const paynetEnv = process.env.PAYNET_ENV;
-  const isLive = paynetEnv === 'live';
-
-  return {
-    apiHost: isLive 
-      ? process.env.PAYNET_API_HOST_LIVE 
-      : process.env.PAYNET_API_HOST_TEST,
-    portalHost: isLive
-      ? process.env.PAYNET_PORTAL_HOST_LIVE
-      : process.env.PAYNET_PORTAL_HOST_TEST,
-    username: process.env.PAYNET_USERNAME!,
-    password: process.env.PAYNET_PASSWORD!,
-    merchantCode: process.env.PAYNET_MERCHANT_CODE!,
   };
 }
 
@@ -96,8 +88,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const paynetConfig = getPaynetConfig();
-
     // Generate order_id and invoice
     const orderId = randomUUID();
     const invoice = BigInt(Date.now()); // Use timestamp as invoice number
@@ -124,13 +114,20 @@ export async function POST(req: Request) {
       );
     }
 
+    const apiHost = getApiHost();
+    const portalHost = getPortalHost();
+    const merchantCode = process.env.PAYNET_MERCHANT_CODE!;
+    const saleAreaCode = process.env.PAYNET_SALE_AREA_CODE!;
+    const callbackUrl = process.env.PAYNET_CALLBACK_URL!;
+
     // Authenticate with Paynet
     const authParams = new URLSearchParams({
-      username: paynetConfig.username,
-      password: paynetConfig.password,
+      grant_type: 'password',
+      username: process.env.PAYNET_USERNAME!,
+      password: process.env.PAYNET_PASSWORD!,
     });
 
-    const authResponse = await fetch(`${paynetConfig.apiHost}/auth`, {
+    const authResponse = await fetch(`${apiHost}/auth`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -158,18 +155,21 @@ export async function POST(req: Request) {
     }
 
     // Create payment
-    const paymentBody = {
-      Invoice: invoice.toString(),
-      MerchantCode: paynetConfig.merchantCode,
+    const paymentBody: any = {
+      Invoice: Number(invoice),
+      MerchantCode: merchantCode,
+      SaleAreaCode: saleAreaCode,
       Currency: 498, // MDL
       Services: [
         {
           Amount: amount,
         },
       ],
+      LinkUrlSucces: `${callbackUrl.replace('/api/paynet/callback', '')}/multumim?order=${orderId}`,
+      LinkUrlCancel: `${callbackUrl.replace('/api/paynet/callback', '')}/plata?cancel=1`,
     };
 
-    const paymentResponse = await fetch(`${paynetConfig.apiHost}/api/Payments`, {
+    const paymentResponse = await fetch(`${apiHost}/api/Payments`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -209,7 +209,7 @@ export async function POST(req: Request) {
     }
 
     // Build payment URL
-    const paymentUrl = `${paynetConfig.portalHost}/Acquiring/GetEcom?operation=${paymentId}&Lang=ro`;
+    const paymentUrl = `${portalHost}/Acquiring/GetEcom?operation=${paymentId}&Lang=ro`;
 
     return NextResponse.json({
       order_id: orderId,

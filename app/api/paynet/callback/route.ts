@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getNotifySecret } from '@/lib/paynet';
 import { createHash } from 'crypto';
-
-const PAYNET_SECRET_KEY = process.env.PAYNET_SECRET_KEY;
 
 export async function POST(req: Request) {
   try {
@@ -13,8 +12,9 @@ export async function POST(req: Request) {
     console.log('Paynet callback received:', JSON.stringify(payload, null, 2));
     console.log('Hash header:', hashHeader);
 
-    if (!PAYNET_SECRET_KEY) {
-      console.error('PAYNET_SECRET_KEY not configured');
+    const notifySecret = getNotifySecret();
+    if (!notifySecret) {
+      console.error('Paynet notify secret not configured');
       return NextResponse.json({ ok: true }); // Return 200 to avoid retries
     }
 
@@ -34,8 +34,8 @@ export async function POST(req: Request) {
         (payment.Merchant || '') +
         (payment.StatusDate || '');
 
-      // Compute hash: Base64(MD5(PreparedString + SECRET_KEY))
-      const hashInput = preparedString + PAYNET_SECRET_KEY;
+      // Compute hash: Base64(MD5(PreparedString + notifySecretKey))
+      const hashInput = preparedString + notifySecret;
       const md5Hash = createHash('md5').update(hashInput).digest();
       const computedHash = Buffer.from(md5Hash).toString('base64');
 
@@ -75,10 +75,11 @@ export async function POST(req: Request) {
             paynet_payload: payload,
           };
 
-          // Add paynet_payment_id if it exists
+          // Add paynet_payment_id (Payment.ID) and paynet_transaction_id
           const paymentId = payment.ID || payment.Id;
           if (paymentId) {
             updateData.paynet_payment_id = paymentId.toString();
+            updateData.paynet_transaction_id = paymentId.toString();
           }
 
           const { error: updateError } = await supabaseAdmin
