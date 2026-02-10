@@ -15,15 +15,13 @@ export default function PlataPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/paynet/create', {
+      const response = await fetch('/api/checkout/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          productId: 'relatia360_conflicte',
-          amount: 990,
-          currency: 'MDL',
+          productId: 'relatia360',
         }),
       });
 
@@ -37,14 +35,9 @@ export default function PlataPage() {
         return;
       }
 
-      if (data.payment_id && data.redirect_base) {
-        // Frontend will handle POST/redirect later
-        // For now, redirect to Paynet form
-        const paymentUrl = `${data.redirect_base}?operation=${data.payment_id}&Lang=ro`;
-        window.location.href = paymentUrl;
-      } else if (data.payment_url) {
-        // Fallback for old format
-        window.location.href = data.payment_url;
+      if (data.url && data.orderId) {
+        // Redirect to payment URL (mock or real RunPay)
+        window.location.href = data.url;
       } else {
         setError(data.details || data.error || 'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.');
         setIsLoading(false);
@@ -173,7 +166,7 @@ export default function PlataPage() {
               {/* Info Note */}
               <div className="pt-4 text-center">
                 <p className="text-sm" style={{ color: "#6B7280" }}>
-                  Vei fi redirecționat către platforma de plată securizată Paynet
+                  Vei fi redirecționat către platforma de plată securizată
                 </p>
               </div>
             </div>
@@ -182,7 +175,7 @@ export default function PlataPage() {
           {/* Security Info */}
           <div className="mt-8 text-center">
             <p className="text-sm" style={{ color: "#6B7280" }}>
-              🔒 Plăți securizate prin Paynet
+              🔒 Plăți securizate
             </p>
           </div>
         </div>
