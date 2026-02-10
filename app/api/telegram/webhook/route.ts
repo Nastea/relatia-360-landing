@@ -1,7 +1,18 @@
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { extractTokenFromText } from '@/lib/token';
+import { verifyAccessTokenAndBind } from '@/lib/telegramVerify';
+import { sendMessage, sendMainMenu, answerCallbackQuery } from '@/lib/telegram';
 
-// Handle Telegram webhook updates
+type TelegramUser = {
+  id: number;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+};
+
 // POST /api/telegram/webhook
+// Main entrypoint for Telegram bot updates
 export async function POST(req: Request) {
   try {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -14,114 +25,322 @@ export async function POST(req: Request) {
 
     const update = await req.json();
 
-    // Extract basic info (do NOT log tokens)
-    const updateId = update.update_id;
-    const message = update.message || update.edited_message;
-    const chatId = message?.chat?.id;
-    const text: string | undefined = message?.text;
+    const updateId: number | undefined = update.update_id;
+    const message = update.message || update.edited_message || null;
+    const callbackQuery = update.callback_query || null;
 
-    console.log('TELEGRAM_UPDATE', { updateId, chatId });
+    const chatId: number | undefined =
+      message?.chat?.id ?? callbackQuery?.message?.chat?.id;
+    const from: TelegramUser | undefined =
+      message?.from ?? callbackQuery?.from ?? undefined;
 
-    if (!chatId || !text) {
+    console.log('TELEGRAM_UPDATE', {
+      updateId,
+      chatId,
+      fromId: from?.id,
+    });
+
+    if (!chatId || !from?.id) {
       // Nothing to do
       return NextResponse.json({ ok: true });
     }
 
-    // Try to extract token from /start access_<token> or plain token text
-    let token: string | null = null;
+    const telegramUserId = from.id;
+    const username = from.username ?? null;
+    const now = new Date().toISOString();
 
-    if (text.startsWith('/start')) {
-      // /start or /start access_<token>
-      const parts = text.split(' ');
-      if (parts.length > 1 && parts[1].startsWith('access_')) {
-        token = parts[1].substring('access_'.length);
-      }
-    } else {
-      // If message looks like a token (e.g. contains letters/numbers and length >= 16)
-      const candidate = text.trim();
-      if (/^[a-zA-Z0-9_-]{16,}$/.test(candidate)) {
-        token = candidate;
-      }
-    }
+    // Upsert telegram_users on any interaction
+    await supabaseAdmin.from('telegram_users').upsert(
+      {
+        telegram_user_id: telegramUserId,
+        username,
+        first_name: from.first_name ?? null,
+        last_name: from.last_name ?? null,
+        last_seen_at: now,
+      },
+      { onConflict: 'telegram_user_id' },
+    );
 
-    if (!token) {
-      // Friendly message if no token detected
-      await sendTelegramMessage(botToken, chatId, {
-        text: 'Trimite-mi linkul sau codul de acces primit pe pagina de mulțumire ca să îți pot confirma plata.',
+    // Check if user is blocked
+    const { data: userRow } = await supabaseAdmin
+      .from('telegram_users')
+      .select('state, blocked_until')
+      .eq('telegram_user_id', telegramUserId)
+      .maybeSingle();
+
+    const isBlocked =
+      userRow?.state === 'BLOCKED' &&
+      userRow.blocked_until &&
+      new Date(userRow.blocked_until) > new Date();
+
+    if (isBlocked) {
+      await sendMessage({
+        botToken,
+        chatId,
+        text: 'Prea multe încercări. Încearcă din nou peste 10 minute.',
       });
       return NextResponse.json({ ok: true });
     }
 
-    // Call our verification endpoint (do NOT log token)
-    const verifyUrl = `${siteUrl}/api/telegram/verify?token=${encodeURIComponent(token)}`;
-    const verifyRes = await fetch(verifyUrl, {
-      method: 'GET',
-    });
+    // Handle callback queries (menu)
+    if (callbackQuery) {
+      const data: string | undefined = callbackQuery.data;
+      const callbackId: string | undefined = callbackQuery.id;
 
-    const verifyData = await verifyRes.json();
+      if (callbackId) {
+        await answerCallbackQuery({
+          botToken,
+          callbackQueryId: callbackId,
+        });
+      }
 
-    if (verifyRes.ok && verifyData.ok) {
-      // Access confirmed
-      const courseUrl = `${siteUrl}/curs?token=${encodeURIComponent(token)}`;
-      const supportUrl = `https://t.me/${process.env.TELEGRAM_BOT_USERNAME || 'Relatia360Bot'}`;
+      if (!data) {
+        return NextResponse.json({ ok: true });
+      }
 
-      await sendTelegramMessage(botToken, chatId, {
-        text: 'Acces confirmat ✅',
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: 'Deschide cursul', url: courseUrl },
-            ],
-            [
-              { text: 'Suport', url: supportUrl },
-            ],
-          ],
-        },
-      });
-    } else {
-      // Invalid or unpaid token
-      await sendTelegramMessage(botToken, chatId, {
-        text: 'Nu găsesc plata pentru acest cod. Verifică linkul din pagina de mulțumim sau reîncearcă.',
-      });
+      switch (data) {
+        case 'lesson_1':
+          await sendMessage({
+            botToken,
+            chatId,
+            text:
+              '📘 Lecția 1\nÎn curând vei găsi aici link direct către conținutul din curs.\nPână atunci, poți accesa materialele pe site:\n' +
+              siteUrl,
+          });
+          break;
+        case 'lesson_2':
+          await sendMessage({
+            botToken,
+            chatId,
+            text:
+              '📗 Lecția 2\nConținutul este în pregătire. Revino curând sau verifică site-ul:\n' +
+              siteUrl,
+          });
+          break;
+        case 'exercises':
+          await sendMessage({
+            botToken,
+            chatId,
+            text:
+              '🧠 Exerciții\nVei primi aici exerciții ghidate după lansarea completă a cursului.\nVezi detalii pe site:\n' +
+              siteUrl,
+          });
+          break;
+        case 'support':
+          await sendMessage({
+            botToken,
+            chatId,
+            text:
+              'Pentru suport, scrie-ne direct aici sau folosește pagina de contact de pe site:\n' +
+              siteUrl,
+          });
+          break;
+        default:
+          await sendMessage({
+            botToken,
+            chatId,
+            text: 'Opțiune necunoscută. Te rog alege din meniu.',
+          });
+          break;
+      }
+
+      return NextResponse.json({ ok: true });
     }
+
+    // Handle text messages
+    const text: string | undefined = message?.text;
+
+    if (!text) {
+      // Non-text messages are ignored
+      return NextResponse.json({ ok: true });
+    }
+
+    const lower = text.toLowerCase().trim();
+
+    // Check if user already has active access
+    const { data: existingAccess } = await supabaseAdmin
+      .from('telegram_access')
+      .select('product_id, revoked_at')
+      .eq('telegram_user_id', telegramUserId)
+      .is('revoked_at', null)
+      .limit(1)
+      .maybeSingle();
+
+    const hasActiveAccess = !!existingAccess;
+
+    // /start command
+    if (lower.startsWith('/start')) {
+      const tokenFromStart = extractTokenFromText(text);
+
+      if (tokenFromStart) {
+        // Verify provided token
+        await handleTokenVerification({
+          botToken,
+          siteUrl,
+          chatId,
+          telegramUserId,
+          username,
+          token: tokenFromStart,
+        });
+        return NextResponse.json({ ok: true });
+      }
+
+      if (hasActiveAccess) {
+        await sendMessage({
+          botToken,
+          chatId,
+          text:
+            'Bine ai revenit! Ai deja acces activ la cursul RELAȚIA 360.\nAlege din meniu ce vrei să deschizi.',
+        });
+        await sendMainMenu({ botToken, chatId, siteUrl });
+        return NextResponse.json({ ok: true });
+      }
+
+      // No token and no access: ask for token
+      await sendAskTokenMessage({ botToken, chatId, siteUrl });
+      await supabaseAdmin
+        .from('telegram_users')
+        .update({ state: 'AWAITING_TOKEN', last_seen_at: now })
+        .eq('telegram_user_id', telegramUserId);
+
+      return NextResponse.json({ ok: true });
+    }
+
+    // Try to interpret message as token
+    const tokenFromText = extractTokenFromText(text);
+    if (tokenFromText) {
+      await handleTokenVerification({
+        botToken,
+        siteUrl,
+        chatId,
+        telegramUserId,
+        username,
+        token: tokenFromText,
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    // Fallback: if user has access, just show menu again
+    if (hasActiveAccess) {
+      await sendMessage({
+        botToken,
+        chatId,
+        text:
+          'Ai deja acces la curs. Folosește meniul pentru a naviga între secțiuni.',
+      });
+      await sendMainMenu({ botToken, chatId, siteUrl });
+      return NextResponse.json({ ok: true });
+    }
+
+    // Otherwise, remind user to send token
+    await sendAskTokenMessage({ botToken, chatId, siteUrl });
 
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('TELEGRAM_WEBHOOK_ERROR', String(error));
+    // Always return 200 to avoid Telegram retries
     return NextResponse.json({ ok: true });
   }
 }
 
-// Helper to call Telegram sendMessage
-async function sendTelegramMessage(
-  botToken: string,
-  chatId: number,
-  payload: { text: string; reply_markup?: any }
-) {
-  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+async function handleTokenVerification(params: {
+  botToken: string;
+  siteUrl: string;
+  chatId: number;
+  telegramUserId: number;
+  username: string | null;
+  token: string;
+}): Promise<void> {
+  const { botToken, siteUrl, chatId, telegramUserId, username, token } = params;
 
-  const body = {
-    chat_id: chatId,
-    text: payload.text,
-    reply_markup: payload.reply_markup,
-    parse_mode: 'HTML',
-  };
+  const result = await verifyAccessTokenAndBind({
+    token,
+    telegramUserId,
+    username: username ?? undefined,
+  });
 
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+  if (result.ok) {
+    await sendMessage({
+      botToken,
+      chatId,
+      text:
+        'Acces confirmat ✅\nAi acum acces la cursul RELAȚIA 360 - De la conflict la conectare.',
     });
-
-    if (!res.ok) {
-      const text = await res.text();
-      console.error('TELEGRAM_SEND_MESSAGE_ERROR', { status: res.status, body: text });
-    }
-  } catch (err) {
-    console.error('TELEGRAM_SEND_MESSAGE_NETWORK_ERROR', String(err));
+    await sendMainMenu({ botToken, chatId, siteUrl });
+    return;
   }
+
+  switch (result.reason) {
+    case 'NOT_FOUND':
+      await sendMessage({
+        botToken,
+        chatId,
+        text:
+          'Nu găsesc plata pentru acest cod. Verifică să fie introdus corect sau folosește linkul din pagina de mulțumire.',
+      });
+      break;
+    case 'NOT_PAID':
+      await sendMessage({
+        botToken,
+        chatId,
+        text:
+          'Plata pentru acest cod nu este încă confirmată. Așteaptă câteva momente și încearcă din nou.',
+      });
+      break;
+    case 'TOKEN_USED_BY_OTHER':
+      await sendMessage({
+        botToken,
+        chatId,
+        text:
+          'Acest cod a fost deja folosit de un alt cont Telegram. Dacă crezi că este o eroare, contactează suportul.',
+      });
+      break;
+    case 'BAD_FORMAT':
+      await sendMessage({
+        botToken,
+        chatId,
+        text:
+          'Codul introdus nu pare valid. Te rog copiază exact codul primit pe pagina de mulțumire.',
+      });
+      break;
+    case 'BLOCKED':
+    case 'RATE_LIMIT':
+      await sendMessage({
+        botToken,
+        chatId,
+        text: 'Prea multe încercări. Încearcă din nou peste 10 minute.',
+      });
+      break;
+    case 'INTERNAL_ERROR':
+    default:
+      await sendMessage({
+        botToken,
+        chatId,
+        text:
+          'A apărut o eroare internă la verificarea codului. Te rog încearcă din nou mai târziu.',
+      });
+      break;
+  }
+}
+
+async function sendAskTokenMessage(params: {
+  botToken: string;
+  chatId: number;
+  siteUrl: string;
+}): Promise<void> {
+  const { botToken, chatId, siteUrl } = params;
+
+  await sendMessage({
+    botToken,
+    chatId,
+    text:
+      'Pentru a-ți activa accesul la curs, trimite-mi codul de acces primit pe pagina de mulțumire după plată.\n\n' +
+      'Dacă nu ai efectuat încă plata, o poți face aici:',
+    replyMarkup: {
+      inline_keyboard: [
+        [{ text: '🌐 Plătește pe site', url: `${siteUrl}/plata` }],
+      ],
+    },
+  });
 }
 

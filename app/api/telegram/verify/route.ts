@@ -1,77 +1,106 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { verifyAccessTokenAndBind } from '@/lib/telegramVerify';
 
 /**
- * GET /api/telegram/verify?token=<access_token>&consume=1
- * Verifies access token and returns product info if valid
- * Used by Telegram bot to unlock access
- * 
- * If consume=1, marks access_used_at to prevent reuse
+ * GET /api/telegram/verify
+ *
+ * Query params:
+ * - token: access_token returned after payment
+ * - telegramUserId: Telegram numeric user ID
+ * - username: optional Telegram username
+ *
+ * Returns:
+ * - { ok: true, productId }
+ * - { ok: false, reason }
  */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const token = searchParams.get('token');
-    const consume = searchParams.get('consume') === '1';
+    const telegramUserIdRaw = searchParams.get('telegramUserId');
+    const username = searchParams.get('username');
 
     if (!token) {
       return NextResponse.json(
-        { ok: false, error: 'Missing token parameter' },
+        { ok: false, reason: 'BAD_FORMAT', error: 'Missing token parameter' },
         { status: 400 }
       );
     }
 
-    // Find order by access_token
-    const { data: order, error } = await supabaseAdmin
-      .from('orders')
-      .select('id, product_id, status, access_used_at')
-      .eq('access_token', token)
-      .single();
-
-    if (error || !order) {
+    if (!telegramUserIdRaw) {
       return NextResponse.json(
-        { ok: false, error: 'Invalid token' },
-        { status: 404 }
+        {
+          ok: false,
+          reason: 'BAD_FORMAT',
+          error: 'Missing telegramUserId parameter',
+        },
+        { status: 400 }
       );
     }
 
-    // Check if order is paid
-    if (order.status !== 'paid') {
+    const telegramUserId = Number(telegramUserIdRaw);
+    if (!Number.isFinite(telegramUserId) || telegramUserId <= 0) {
       return NextResponse.json(
-        { ok: false, error: 'Order not paid' },
-        { status: 403 }
+        {
+          ok: false,
+          reason: 'BAD_FORMAT',
+          error: 'Invalid telegramUserId parameter',
+        },
+        { status: 400 }
       );
     }
 
-    // Check if token already used (if consume is required)
-    if (order.access_used_at && consume) {
-      return NextResponse.json(
-        { ok: false, error: 'Token already used' },
-        { status: 403 }
-      );
-    }
-
-    // Mark as used if consume flag is set
-    if (consume && !order.access_used_at) {
-      const { error: updateError } = await supabaseAdmin
-        .from('orders')
-        .update({ access_used_at: new Date().toISOString() })
-        .eq('id', order.id);
-
-      if (updateError) {
-        console.error('Token consume error:', updateError);
-        // Continue anyway, return success
-      }
-    }
-
-    return NextResponse.json({
-      ok: true,
-      productId: order.product_id,
+    const result = await verifyAccessTokenAndBind({
+      token,
+      telegramUserId,
+      username: username ?? null,
     });
-  } catch (error) {
-    console.error('Telegram verify error:', error);
+
+    if (result.ok) {
+      return NextResponse.json({
+        ok: true,
+        productId: result.productId,
+      });
+    }
+
+    // Map reasons to HTTP status for debugging (Telegram will usually ignore status)
+    let status = 400;
+    switch (result.reason) {
+      case 'NOT_FOUND':
+      case 'TOKEN_USED_BY_OTHER':
+        status = 404;
+        break;
+      case 'NOT_PAID':
+        status = 403;
+        break;
+      case 'BLOCKED':
+      case 'RATE_LIMIT':
+        status = 429;
+        break;
+      case 'INTERNAL_ERROR':
+        status = 500;
+        break;
+      case 'BAD_FORMAT':
+      default:
+        status = 400;
+        break;
+    }
+
     return NextResponse.json(
-      { ok: false, error: 'Internal server error', details: String(error) },
+      {
+        ok: false,
+        reason: result.reason,
+      },
+      { status }
+    );
+  } catch (error) {
+    console.error('TELEGRAM_VERIFY_ROUTE_ERROR', String(error));
+    return NextResponse.json(
+      {
+        ok: false,
+        reason: 'INTERNAL_ERROR',
+        error: 'Internal server error',
+      },
       { status: 500 }
     );
   }

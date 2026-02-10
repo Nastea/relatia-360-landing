@@ -1,11 +1,24 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-function getSupabaseAdmin() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+/**
+ * Supabase admin client (service role)
+ *
+ * Uses server-only env vars:
+ * - SUPABASE_URL
+ * - SUPABASE_SERVICE_ROLE_KEY
+ *
+ * For backwards compatibility, it also falls back to NEXT_PUBLIC_SUPABASE_URL
+ * if SUPABASE_URL is not defined.
+ */
+function getSupabaseAdmin(): SupabaseClient {
+  const supabaseUrl =
+    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl) {
-    throw new Error('Missing env var: NEXT_PUBLIC_SUPABASE_URL');
+    throw new Error(
+      'Missing env var: SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL as fallback)',
+    );
   }
 
   if (!supabaseServiceKey) {
@@ -20,15 +33,16 @@ function getSupabaseAdmin() {
   });
 }
 
-// Lazy initialization to avoid errors during build
-let supabaseAdminInstance: ReturnType<typeof getSupabaseAdmin> | null = null;
+// Lazy initialization to avoid errors during build / edge cold starts
+let supabaseAdminInstance: SupabaseClient | null = null;
 
-export const supabaseAdmin = new Proxy({} as ReturnType<typeof getSupabaseAdmin>, {
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     if (!supabaseAdminInstance) {
       supabaseAdminInstance = getSupabaseAdmin();
     }
-    return supabaseAdminInstance[prop as keyof typeof supabaseAdminInstance];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (supabaseAdminInstance as any)[prop];
   },
 });
 
