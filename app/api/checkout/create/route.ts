@@ -65,8 +65,8 @@ export async function POST(req: Request) {
     let paymentUrl: string;
 
     if (runpayMode === 'mock') {
-      // Mock mode: redirect to mock RunPay page
-      paymentUrl = `${siteUrl}/mock/runpay?order=${order.id}`;
+      // Mock mode: redirect to mock RunPay success endpoint (simulates payment)
+      paymentUrl = `${siteUrl}/mock/runpay/success?order=${order.id}`;
     } else {
       // TODO: Real RunPay integration
       // When RUNPAY_MODE=live and credentials are available:
