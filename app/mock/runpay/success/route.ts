@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     // Validate order parameter exists
     if (!orderParam) {
       return NextResponse.json(
-        { error: 'Missing order parameter' },
+        { error: 'Missing order id' },
         { status: 400 }
       );
     }
