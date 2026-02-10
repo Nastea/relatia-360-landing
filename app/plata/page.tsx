@@ -9,41 +9,37 @@ export default function PlataPage() {
   const [error, setError] = useState<string | null>(null);
 
   const handlePayment = async () => {
-    if (!acceptedTerms) return;
+    if (!acceptedTerms || isLoading) return;
 
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch('/api/checkout/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: 'relatia360',
-        }),
-      });
+    const res = await fetch('/api/checkout/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ productId: 'relatia360' }),
+    });
 
-      const data = await response.json();
+    const json = await res.json();
+    console.log('CHECKOUT_CREATE_RESPONSE', json);
 
-      if (!response.ok) {
-        // Handle error response
-        const errorMsg = data.details || data.error || 'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.';
-        setError(errorMsg);
-        setIsLoading(false);
-        return;
-      }
+    if (json.error) {
+      // Display error from API
+      const errorMsg = json.details || json.error || 'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.';
+      setError(errorMsg);
+      setIsLoading(false);
+      return;
+    }
 
-      if (data.url && data.orderId) {
-        // Redirect to payment URL (mock or real RunPay)
-        window.location.href = data.url;
-      } else {
-        setError(data.details || data.error || 'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.');
-        setIsLoading(false);
-      }
-    } catch (err) {
-      setError('A apărut o eroare. Te rugăm să încerci din nou.');
+    if (json.url) {
+      // Redirect to payment URL (mock or real RunPay)
+      window.location.assign(json.url);
+      // Don't set isLoading to false here - we're redirecting
+    } else {
+      // No URL in response
+      setError(json.details || json.error || 'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.');
       setIsLoading(false);
     }
   };
