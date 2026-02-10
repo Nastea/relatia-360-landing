@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         // Find order by invoice (ExternalID)
         const { data: order, error: findError } = await supabaseAdmin
           .from('orders')
-          .select('order_id')
+          .select('id')
           .eq('invoice', externalId.toString())
           .single();
 
@@ -85,12 +85,12 @@ export async function POST(req: Request) {
           const { error: updateError } = await supabaseAdmin
             .from('orders')
             .update(updateData)
-            .eq('order_id', order.order_id);
+            .eq('id', order.id);
 
           if (updateError) {
             console.error('Supabase update error:', updateError);
           } else {
-            console.log(`Order ${order.order_id} marked as paid (invoice: ${externalId})`);
+            console.log(`Order ${order.id} marked as paid (invoice: ${externalId})`);
           }
         }
       } else {
