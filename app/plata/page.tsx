@@ -14,16 +14,20 @@ export default function PlataPage() {
     setIsLoading(true);
     setError(null);
 
-    const res = await fetch('/api/checkout/create', {
+    const res = await fetch('/api/paynet/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ productId: 'relatia360' }),
+      body: JSON.stringify({
+        productId: 'relatia360_conflicte',
+        amount: 990,
+        currency: 'MDL',
+      }),
     });
 
     const json = await res.json();
-    console.log('CHECKOUT_CREATE_RESPONSE', json);
+    console.log('PAYNET_CREATE_RESPONSE', json);
 
     if (json.error) {
       // Display error from API
@@ -33,12 +37,16 @@ export default function PlataPage() {
       return;
     }
 
-    if (json.url) {
-      // Redirect to payment URL (mock or real RunPay)
-      window.location.assign(json.url);
+    if (json.ok && json.payment_id && json.redirect_base) {
+      // Paynet redirect format
+      const paymentUrl = `${json.redirect_base}?operation=${json.payment_id}&Lang=ro`;
+      window.location.assign(paymentUrl);
       // Don't set isLoading to false here - we're redirecting
+    } else if (json.payment_url) {
+      // Fallback for old format
+      window.location.assign(json.payment_url);
     } else {
-      // No URL in response
+      // No payment URL in response
       setError(json.details || json.error || 'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.');
       setIsLoading(false);
     }
@@ -162,7 +170,7 @@ export default function PlataPage() {
               {/* Info Note */}
               <div className="pt-4 text-center">
                 <p className="text-sm" style={{ color: "#6B7280" }}>
-                  Vei fi redirecționat către platforma de plată securizată
+                  Vei fi redirecționat către platforma de plată securizată Paynet
                 </p>
               </div>
             </div>
@@ -171,7 +179,7 @@ export default function PlataPage() {
           {/* Security Info */}
           <div className="mt-8 text-center">
             <p className="text-sm" style={{ color: "#6B7280" }}>
-              🔒 Plăți securizate
+              🔒 Plăți securizate prin Paynet
             </p>
           </div>
         </div>
