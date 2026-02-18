@@ -178,18 +178,31 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18.12/dist/browser/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.12/dist/index.js"></script>
-<script src="https://unpkg.com/markmap-lib@0.18.12/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.18.12/dist/index.umd.js"></script>
 <script>
 (function() {
   const STORAGE_KEY = 'markmap_md';
   
   // Wait for markmap-lib to load
-  function waitForMarkmapLib(callback) {
-    if (window.markmap && window.markmap.Transformer) {
-      callback();
-    } else {
-      setTimeout(() => waitForMarkmapLib(callback), 100);
+  function waitForMarkmapLib(callback, maxAttempts = 50) {
+    let attempts = 0;
+    function check() {
+      attempts++;
+      // Try multiple ways to access Transformer
+      if ((window.markmap && window.markmap.Transformer) || 
+          (window.markmapLib && window.markmapLib.Transformer) ||
+          (window.markmap && window.markmap.transform)) {
+        callback();
+      } else if (attempts < maxAttempts) {
+        setTimeout(check, 100);
+      } else {
+        console.error('Markmap-lib failed to load after', maxAttempts, 'attempts');
+        console.log('window.markmap:', window.markmap);
+        console.log('window.markmapLib:', window.markmapLib);
+        alert('Eroare: Markmap Transformer nu s-a încărcat. Verifică conexiunea la internet și reîncarcă pagina.');
+      }
     }
+    check();
   }
   
   // Default Markdown content (extracted from current mindmap structure)
@@ -361,12 +374,21 @@ NU = Scalare agresivă încă`;
   // Transform Markdown to Markmap data
   function transformMarkdown(md) {
     try {
-      // Try different ways to access Transformer
+      console.log('Transforming markdown, length:', md.length);
+      console.log('window.markmap:', window.markmap);
+      console.log('window.markmapLib:', window.markmapLib);
+      
+      // Try multiple ways to access Transformer
       let Transformer;
-      if (window.markmap && window.markmap.Transformer) {
+      if (window.markmapLib && window.markmapLib.Transformer) {
+        Transformer = window.markmapLib.Transformer;
+        console.log('Using markmapLib.Transformer');
+      } else if (window.markmap && window.markmap.Transformer) {
         Transformer = window.markmap.Transformer;
+        console.log('Using markmap.Transformer');
       } else if (window.markmap && window.markmap.transform) {
         // Fallback: use transform directly
+        console.log('Using markmap.transform directly');
         const result = window.markmap.transform(md);
         return result.root;
       } else {
@@ -375,11 +397,13 @@ NU = Scalare agresivă încă`;
       
       const transformer = new Transformer();
       const { root } = transformer.transform(md);
+      console.log('Transform successful, root:', root);
       return root;
     } catch (error) {
       console.error('Markdown transform error:', error);
       console.error('Available markmap:', window.markmap);
-      alert('Eroare la transformarea Markdown: ' + error.message);
+      console.error('Available markmapLib:', window.markmapLib);
+      alert('Eroare la transformarea Markdown: ' + error.message + '\n\nVerifică consola pentru detalii.');
       return null;
     }
   }
