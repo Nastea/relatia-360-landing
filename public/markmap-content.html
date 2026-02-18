@@ -4,6 +4,102 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<title>Markmap Editor</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+#editor-container {
+  padding: 1rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+#html-textarea {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  resize: none;
+  min-height: 150px;
+  max-height: 300px;
+}
+#html-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+#update-btn {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#update-btn:hover {
+  background: #2563eb;
+}
+#mindmap {
+  display: block;
+  width: 100%;
+  flex: 1;
+}
+.markmap-dark {
+  background: #27272a;
+  color: white;
+}
+.markmap-dark #editor-container {
+  background: #1f2937;
+  border-color: #374151;
+}
+.markmap-dark #html-textarea {
+  background: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
+}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.12/dist/style.css">
+</head>
+<body>
+<div id="editor-container">
+  <textarea id="html-textarea" placeholder="Lipește codul HTML aici..."></textarea>
+  <button id="update-btn">Update</button>
+</div>
+<svg id="mindmap"></svg>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18.12/dist/browser/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.12/dist/index.js"></script>
+<script>
+(function() {
+  let mm;
+  const { markmap } = window;
+  
+  // Default HTML content (from markmap (1).html)
+  const defaultHTML = `<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 <title>Markmap</title>
 <style>
 * {
@@ -28,6 +124,100 @@ html {
 </head>
 <body>
 <svg id="mindmap"></svg>
-<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script><script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18.12/dist/browser/index.js"></script><script src="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.12/dist/index.js"></script><script>(()=>{setTimeout(()=>{const{markmap:S,mm:Q}=window,$=new S.Toolbar;$.attach(Q);const I=$.render();I.setAttribute("style","position:absolute;bottom:20px;right:20px"),document.body.append(I)})})()</script><script>((l,U,M,R)=>{const N=l();window.mm=N.Markmap.create("svg#mindmap",(U||N.deriveOptions)(R),M),window.matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.classList.add("markmap-dark")})(()=>window.markmap,null,{"content":"Funnel Lilia Dubi&#x21b;a &#x2013; Etapa Actual&#x103; (Cre&#x219;tere &amp; Cercetare)","children":[{"content":"OBIECTIV GENERAL (Acum)","children":[{"content":"Cre&#x219;tere Instagram","children":[],"payload":{"tag":"li","lines":"3,4"}},{"content":"Cre&#x219;tere comunitate Telegram","children":[],"payload":{"tag":"li","lines":"4,5"}},{"content":"Studierea profund&#x103; a nevoilor reale","children":[],"payload":{"tag":"li","lines":"5,6"}},{"content":"Testare proces v&#xe2;nzare (Leeloo)","children":[],"payload":{"tag":"li","lines":"6,7"}},{"content":"Construire sistem intern clar","children":[],"payload":{"tag":"li","lines":"7,9"}}],"payload":{"tag":"h2","lines":"2,3"}},{"content":"1) Instagram (Motor de Cre&#x219;tere)","children":[{"content":"\n<p data-lines=\"13,14\">Func&#x21b;ia actual&#x103;</p>","children":[{"content":"Cre&#x219;tere audien&#x21b;&#x103;","children":[],"payload":{"tag":"li","lines":"14,15"}},{"content":"Cre&#x219;tere autoritate","children":[],"payload":{"tag":"li","lines":"15,16"}},{"content":"Demonstrare expertiz&#x103; &#xee;n timp real","children":[],"payload":{"tag":"li","lines":"16,18"}}],"payload":{"tag":"li","lines":"13,18"}},{"content":"\n<p data-lines=\"18,19\">Con&#x21b;inut</p>","children":[{"content":"Reels educative &#x219;i situa&#x21b;ionale","children":[],"payload":{"tag":"li","lines":"19,20"}},{"content":"Carusele explicative","children":[],"payload":{"tag":"li","lines":"20,21"}},{"content":"Live-uri pe cazuri reale","children":[],"payload":{"tag":"li","lines":"21,23"}}],"payload":{"tag":"li","lines":"18,23"}},{"content":"\n<p data-lines=\"23,24\">Live-uri</p>","children":[{"content":"R&#x103;spuns la &#xee;ntreb&#x103;ri anonime din Telegram","children":[],"payload":{"tag":"li","lines":"24,25"}},{"content":"Analiz&#x103; psihologic&#x103; aplicat&#x103;","children":[],"payload":{"tag":"li","lines":"25,26"}},{"content":"Explica&#x21b;ii clare pe situa&#x21b;ii concrete","children":[],"payload":{"tag":"li","lines":"26,28"}}],"payload":{"tag":"li","lines":"23,28"}},{"content":"\n<p data-lines=\"28,29\">Dup&#x103; Live</p>","children":[{"content":"Extragem secven&#x21b;e puternice","children":[],"payload":{"tag":"li","lines":"29,30"}},{"content":"Le transform&#x103;m &#xee;n Reels","children":[],"payload":{"tag":"li","lines":"30,31"}},{"content":"Reel-urile aduc trafic nou","children":[],"payload":{"tag":"li","lines":"31,33"}}],"payload":{"tag":"li","lines":"28,33"}},{"content":"\n<p data-lines=\"33,34\">Scop</p>","children":[{"content":"M&#x103;rire public","children":[],"payload":{"tag":"li","lines":"34,35"}},{"content":"Cre&#x219;tere &#xee;ncredere","children":[],"payload":{"tag":"li","lines":"35,36"}},{"content":"Direc&#x21b;ionare spre Telegram","children":[],"payload":{"tag":"li","lines":"36,38"}}],"payload":{"tag":"li","lines":"33,38"}},{"content":"\n<p data-lines=\"38,39\">KPI</p>","children":[{"content":"Vizualiz&#x103;ri","children":[],"payload":{"tag":"li","lines":"39,40"}},{"content":"Save-uri","children":[],"payload":{"tag":"li","lines":"40,41"}},{"content":"Follow-uri noi","children":[],"payload":{"tag":"li","lines":"41,42"}},{"content":"Click Telegram","children":[],"payload":{"tag":"li","lines":"42,44"}}],"payload":{"tag":"li","lines":"38,44"}}],"payload":{"tag":"h2","lines":"11,12"}},{"content":"2) Telegram (Comunitate &amp; Cercetare)","children":[{"content":"\n<p data-lines=\"48,49\">Func&#x21b;ia actual&#x103;</p>","children":[{"content":"Comunitate activ&#x103;","children":[],"payload":{"tag":"li","lines":"49,50"}},{"content":"Spa&#x21b;iu sigur pentru &#xee;ntreb&#x103;ri anonime","children":[],"payload":{"tag":"li","lines":"50,51"}},{"content":"Colectare probleme reale","children":[],"payload":{"tag":"li","lines":"51,52"}},{"content":"Validare teme produse","children":[],"payload":{"tag":"li","lines":"52,54"}}],"payload":{"tag":"li","lines":"48,54"}},{"content":"\n<p data-lines=\"54,55\">Ce facem aici</p>","children":[{"content":"&#xce;ntreb&#x103;ri anonime","children":[],"payload":{"tag":"li","lines":"55,56"}},{"content":"Poll-uri","children":[],"payload":{"tag":"li","lines":"56,57"}},{"content":"Discu&#x21b;ii","children":[],"payload":{"tag":"li","lines":"57,58"}},{"content":"Observ&#x103;m limbajul real al audien&#x21b;ei","children":[],"payload":{"tag":"li","lines":"58,60"}}],"payload":{"tag":"li","lines":"54,60"}},{"content":"\n<p data-lines=\"60,61\">Scop</p>","children":[{"content":"&#xce;n&#x21b;elegere profund&#x103; a durerilor","children":[],"payload":{"tag":"li","lines":"61,62"}},{"content":"Identificare pattern-uri repetate","children":[],"payload":{"tag":"li","lines":"62,63"}},{"content":"Construirea cursului targetat","children":[],"payload":{"tag":"li","lines":"63,65"}}],"payload":{"tag":"li","lines":"60,65"}},{"content":"\n<p data-lines=\"65,66\">KPI</p>","children":[{"content":"Num&#x103;r membri","children":[],"payload":{"tag":"li","lines":"66,67"}},{"content":"Interac&#x21b;iune","children":[],"payload":{"tag":"li","lines":"67,68"}},{"content":"Tipuri de probleme recurente","children":[],"payload":{"tag":"li","lines":"68,70"}}],"payload":{"tag":"li","lines":"65,70"}}],"payload":{"tag":"h2","lines":"46,47"}},{"content":"3) Primul Produs Test &#x2013; Conflict","children":[{"content":"\n<p data-lines=\"74,75\">Tema</p>","children":[{"content":"Gestionarea conflictului","children":[],"payload":{"tag":"li","lines":"75,76"}},{"content":"Oprirea escalad&#x103;rii","children":[],"payload":{"tag":"li","lines":"76,77"}},{"content":"Structur&#x103; clar&#x103; de comunicare","children":[],"payload":{"tag":"li","lines":"77,79"}}],"payload":{"tag":"li","lines":"74,79"}},{"content":"\n<p data-lines=\"79,80\">Rol strategic</p>","children":[{"content":"Testare Leeloo","children":[],"payload":{"tag":"li","lines":"80,81"}},{"content":"Testare funnel v&#xe2;nzare","children":[],"payload":{"tag":"li","lines":"81,82"}},{"content":"&#xce;nv&#x103;&#x21b;are logistic&#x103;","children":[],"payload":{"tag":"li","lines":"82,84"}}],"payload":{"tag":"li","lines":"79,84"}},{"content":"\n<p data-lines=\"84,85\">Obiectiv</p>","children":[{"content":"Optimizare sistem","children":[],"payload":{"tag":"li","lines":"85,86"}},{"content":"Nu maximizare profit","children":[],"payload":{"tag":"li","lines":"86,88"}}],"payload":{"tag":"li","lines":"84,88"}}],"payload":{"tag":"h2","lines":"72,73"}},{"content":"4) Curs Targetat (Etapa Urm&#x103;toare)","children":[{"content":"\n<p data-lines=\"92,93\">Va fi construit pe baza</p>","children":[{"content":"Problemelor recurente din Telegram","children":[],"payload":{"tag":"li","lines":"93,94"}},{"content":"&#xce;ntreb&#x103;rilor din Live-uri","children":[],"payload":{"tag":"li","lines":"94,95"}},{"content":"Pattern-urilor repetate","children":[],"payload":{"tag":"li","lines":"95,96"}},{"content":"Feedback-ului din produsul test","children":[],"payload":{"tag":"li","lines":"96,98"}}],"payload":{"tag":"li","lines":"92,98"}},{"content":"\n<p data-lines=\"98,99\">Obiectiv</p>","children":[{"content":"Produs ultra-targetat","children":[],"payload":{"tag":"li","lines":"99,100"}},{"content":"Conversie mare","children":[],"payload":{"tag":"li","lines":"100,101"}},{"content":"Pozi&#x21b;ionare clar&#x103;","children":[],"payload":{"tag":"li","lines":"101,103"}}],"payload":{"tag":"li","lines":"98,103"}}],"payload":{"tag":"h2","lines":"90,91"}},{"content":"5) Sistem Intern (Construc&#x21b;ie Echipa)","children":[{"content":"\n<p data-lines=\"107,108\">Roluri clare</p>","children":[{"content":"Strategie","children":[],"payload":{"tag":"li","lines":"108,109"}},{"content":"Expertiz&#x103; (Lilia)","children":[],"payload":{"tag":"li","lines":"109,110"}},{"content":"Con&#x21b;inut","children":[],"payload":{"tag":"li","lines":"110,111"}},{"content":"Repurposing","children":[],"payload":{"tag":"li","lines":"111,112"}},{"content":"Tehnic (Leeloo, funnel)","children":[],"payload":{"tag":"li","lines":"112,113"}},{"content":"Analiz&#x103; date","children":[],"payload":{"tag":"li","lines":"113,115"}}],"payload":{"tag":"li","lines":"107,115"}},{"content":"\n<p data-lines=\"115,116\">Scop</p>","children":[{"content":"Eliminare haos","children":[],"payload":{"tag":"li","lines":"116,117"}},{"content":"Scalabilitate","children":[],"payload":{"tag":"li","lines":"117,118"}},{"content":"Cre&#x219;tere sustenabil&#x103;","children":[],"payload":{"tag":"li","lines":"118,120"}}],"payload":{"tag":"li","lines":"115,120"}}],"payload":{"tag":"h2","lines":"105,106"}},{"content":"ETAPA ACTUAL&#x102; =","children":[{"content":"","children":[{"content":"Cre&#x219;tere","children":[],"payload":{"tag":"li","lines":"124,125"}},{"content":"Cercetare","children":[],"payload":{"tag":"li","lines":"125,126"}},{"content":"Testare","children":[],"payload":{"tag":"li","lines":"126,127"}},{"content":"Sistemizare","children":[],"payload":{"tag":"li","lines":"127,129"}}],"payload":{"tag":"ul","lines":"124,129"}},{"content":"NU = Scalare agresiv&#x103; &#xee;nc&#x103;","children":[],"payload":{"tag":"li","lines":"129,130"}}],"payload":{"tag":"h2","lines":"122,123"}}],"payload":{"tag":"h1","lines":"0,1"}},null)</script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script><script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18.12/dist/browser/index.js"></script><script src="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.12/dist/index.js"></script><script>(()=>{setTimeout(()=>{const{markmap:S,mm:Q}=window,$=new S.Toolbar;$.attach(Q);const I=$.render();I.setAttribute("style","position:absolute;bottom:20px;right:20px"),document.body.append(I)})})()</script><script>((l,U,M,R)=>{const N=l();window.mm=N.Markmap.create("svg#mindmap",(U||N.deriveOptions)(R),M),window.matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.classList.add("markmap-dark")})(()=>window.markmap,null,{"content":"Funnel Lilia Dubiță – Etapa Actuală (Creștere & Cercetare)","children":[{"content":"OBIECTIV GENERAL (Acum)","children":[{"content":"Creștere Instagram","children":[],"payload":{"tag":"li","lines":"3,4"}},{"content":"Creștere comunitate Telegram","children":[],"payload":{"tag":"li","lines":"4,5"}},{"content":"Studierea profundă a nevoilor reale","children":[],"payload":{"tag":"li","lines":"5,6"}},{"content":"Testare proces vânzare (Leeloo)","children":[],"payload":{"tag":"li","lines":"6,7"}},{"content":"Construire sistem intern clar","children":[],"payload":{"tag":"li","lines":"7,8"}},{"content":"Construire „fabrică de conținut" (live → reels → trafic → Telegram)","children":[],"payload":{"tag":"li","lines":"8,10"}}],"payload":{"tag":"h2","lines":"2,3"}},{"content":"1) Instagram (Motor de Creștere)","children":[{"content":"Funcția actuală","children":[{"content":"Creștere audiență","children":[],"payload":{"tag":"li","lines":"12,13"}},{"content":"Creștere autoritate","children":[],"payload":{"tag":"li","lines":"13,14"}},{"content":"Demonstrare expertiză în timp real","children":[],"payload":{"tag":"li","lines":"14,15"}}],"payload":{"tag":"li","lines":"11,15"}},{"content":"Conținut","children":[{"content":"Reels educative și situaționale","children":[],"payload":{"tag":"li","lines":"16,17"}},{"content":"Carusele explicative","children":[],"payload":{"tag":"li","lines":"17,18"}},{"content":"Live-uri pe cazuri reale (pe Instagram)","children":[],"payload":{"tag":"li","lines":"18,19"}}],"payload":{"tag":"li","lines":"15,19"}},{"content":"Live-uri (IG)","children":[{"content":"Răspuns la întrebări anonime colectate din Telegram","children":[],"payload":{"tag":"li","lines":"20,21"}},{"content":"Analiză psihologică aplicată","children":[],"payload":{"tag":"li","lines":"21,22"}},{"content":"Explicații clare pe situații concrete","children":[],"payload":{"tag":"li","lines":"22,23"}}],"payload":{"tag":"li","lines":"19,23"}},{"content":"După Live","children":[{"content":"Extragem secvențe puternice","children":[],"payload":{"tag":"li","lines":"24,25"}},{"content":"Le transformăm în Reels","children":[],"payload":{"tag":"li","lines":"25,26"}},{"content":"Reels aduc trafic nou","children":[],"payload":{"tag":"li","lines":"26,27"}}],"payload":{"tag":"li","lines":"23,27"}},{"content":"Scop","children":[{"content":"Mărire public","children":[],"payload":{"tag":"li","lines":"28,29"}},{"content":"Creștere încredere","children":[],"payload":{"tag":"li","lines":"29,30"}},{"content":"Direcționare spre Telegram","children":[],"payload":{"tag":"li","lines":"30,32"}}],"payload":{"tag":"li","lines":"27,32"}}],"payload":{"tag":"h2","lines":"10,11"}},{"content":"2) Telegram (Comunitate & Cercetare)","children":[{"content":"Funcția actuală","children":[{"content":"Comunitate activă","children":[],"payload":{"tag":"li","lines":"34,35"}},{"content":"Spațiu sigur pentru întrebări anonime","children":[],"payload":{"tag":"li","lines":"35,36"}},{"content":"Colectare probleme reale","children":[],"payload":{"tag":"li","lines":"36,37"}},{"content":"Validare teme produse","children":[],"payload":{"tag":"li","lines":"37,38"}}],"payload":{"tag":"li","lines":"33,38"}},{"content":"Ce facem aici","children":[{"content":"Întrebări anonime (bază pentru live-uri IG)","children":[],"payload":{"tag":"li","lines":"39,40"}},{"content":"Poll-uri","children":[],"payload":{"tag":"li","lines":"40,41"}},{"content":"Discuții","children":[],"payload":{"tag":"li","lines":"41,42"}},{"content":"Observăm limbajul real al audienței","children":[],"payload":{"tag":"li","lines":"42,43"}}],"payload":{"tag":"li","lines":"38,43"}},{"content":"Scop","children":[{"content":"Înțelegere profundă a durerilor","children":[],"payload":{"tag":"li","lines":"44,45"}},{"content":"Identificare pattern-uri repetate","children":[],"payload":{"tag":"li","lines":"45,46"}},{"content":"Construirea cursului targetat","children":[],"payload":{"tag":"li","lines":"46,48"}}],"payload":{"tag":"li","lines":"43,48"}}],"payload":{"tag":"h2","lines":"32,33"}},{"content":"3) Fabrica de conținut (Loop de creștere)","children":[{"content":"Telegram: întrebări anonime + poll-uri","children":[{"content":"Selectăm teme recurente","children":[],"payload":{"tag":"li","lines":"50,51"}}],"payload":{"tag":"li","lines":"49,51"}},{"content":"Instagram Live: răspunsuri pe cazuri reale","children":[{"content":"Dovadă de expertiză + conectare","children":[],"payload":{"tag":"li","lines":"52,53"}}],"payload":{"tag":"li","lines":"51,53"}},{"content":"Repurposing","children":[{"content":"Live → Reels (cele mai puternice segmente)","children":[],"payload":{"tag":"li","lines":"54,55"}},{"content":"Reels → trafic nou","children":[],"payload":{"tag":"li","lines":"55,56"}},{"content":"Trafic nou → Telegram (comunitate)","children":[],"payload":{"tag":"li","lines":"56,57"}}],"payload":{"tag":"li","lines":"53,57"}},{"content":"Scop","children":[{"content":"Creștere constantă","children":[],"payload":{"tag":"li","lines":"58,59"}},{"content":"Cercetare continuă","children":[],"payload":{"tag":"li","lines":"59,60"}},{"content":"Conținut autentic, situațional","children":[],"payload":{"tag":"li","lines":"60,62"}}],"payload":{"tag":"li","lines":"57,62"}}],"payload":{"tag":"h2","lines":"48,49"}},{"content":"4) Primul Produs Test – Conflict","children":[{"content":"Tema","children":[{"content":"Gestionarea conflictului","children":[],"payload":{"tag":"li","lines":"64,65"}},{"content":"Oprirea escaladării","children":[],"payload":{"tag":"li","lines":"65,66"}},{"content":"Structură clară de comunicare","children":[],"payload":{"tag":"li","lines":"66,67"}}],"payload":{"tag":"li","lines":"63,67"}},{"content":"Rol strategic","children":[{"content":"Testare Leeloo","children":[],"payload":{"tag":"li","lines":"68,69"}},{"content":"Testare funnel vânzare","children":[],"payload":{"tag":"li","lines":"69,70"}},{"content":"Învățare logistică","children":[],"payload":{"tag":"li","lines":"70,71"}}],"payload":{"tag":"li","lines":"67,71"}},{"content":"Obiectiv","children":[{"content":"Optimizare sistem (nu maximizare profit)","children":[],"payload":{"tag":"li","lines":"72,74"}}],"payload":{"tag":"li","lines":"71,74"}}],"payload":{"tag":"h2","lines":"62,63"}},{"content":"5) Curs Targetat (Etapa următoare)","children":[{"content":"Va fi construit pe baza","children":[{"content":"Problemelor recurente din Telegram","children":[],"payload":{"tag":"li","lines":"76,77"}},{"content":"Întrebărilor din live-urile IG","children":[],"payload":{"tag":"li","lines":"77,78"}},{"content":"Pattern-urilor repetate","children":[],"payload":{"tag":"li","lines":"78,79"}},{"content":"Feedback-ului din produsul test","children":[],"payload":{"tag":"li","lines":"79,80"}}],"payload":{"tag":"li","lines":"75,80"}},{"content":"Obiectiv","children":[{"content":"Produs ultra-targetat","children":[],"payload":{"tag":"li","lines":"81,82"}},{"content":"Conversie mare","children":[],"payload":{"tag":"li","lines":"82,83"}},{"content":"Poziționare clară","children":[],"payload":{"tag":"li","lines":"83,85"}}],"payload":{"tag":"li","lines":"80,85"}}],"payload":{"tag":"h2","lines":"74,75"}},{"content":"6) Sistem Intern (Construcție echipă)","children":[{"content":"Roluri clare","children":[{"content":"Strategie","children":[],"payload":{"tag":"li","lines":"87,88"}},{"content":"Expertiză (Lilia)","children":[],"payload":{"tag":"li","lines":"88,89"}},{"content":"Conținut (plan + scenarii)","children":[],"payload":{"tag":"li","lines":"89,90"}},{"content":"Editare/Repurposing (live → reels)","children":[],"payload":{"tag":"li","lines":"90,91"}},{"content":"Postare/Distribuție","children":[],"payload":{"tag":"li","lines":"91,92"}},{"content":"Tehnic (Leeloo, funnel)","children":[],"payload":{"tag":"li","lines":"92,93"}},{"content":"Analiză date (insight-uri + KPI)","children":[],"payload":{"tag":"li","lines":"93,94"}}],"payload":{"tag":"li","lines":"86,94"}},{"content":"Scop","children":[{"content":"Eliminare haos","children":[],"payload":{"tag":"li","lines":"95,96"}},{"content":"Scalabilitate","children":[],"payload":{"tag":"li","lines":"96,97"}},{"content":"Creștere sustenabilă","children":[],"payload":{"tag":"li","lines":"97,99"}}],"payload":{"tag":"li","lines":"94,99"}}],"payload":{"tag":"h2","lines":"85,86"}},{"content":"ETAPA ACTUALĂ =","children":[{"content":"Creștere","children":[],"payload":{"tag":"li","lines":"100,101"}},{"content":"Cercetare","children":[],"payload":{"tag":"li","lines":"101,102"}},{"content":"Testare","children":[],"payload":{"tag":"li","lines":"102,103"}},{"content":"Sistemizare","children":[],"payload":{"tag":"li","lines":"103,104"}},{"content":"Construcție fabrică de conținut","children":[],"payload":{"tag":"li","lines":"104,105"}},{"content":"NU = Scalare agresivă încă","children":[],"payload":{"tag":"li","lines":"105,106"}}],"payload":{"tag":"h2","lines":"99,100"}}],"payload":{"tag":"h1","lines":"0,1"}},null)</script>
+</body>
+</html>`;
+
+  // Extract JSON data from HTML string
+  function extractDataFromHTML(html) {
+    try {
+      // Find the JSON data in the script tag
+      const scriptMatch = html.match(/<script[^>]*>\(\(l,U,M,R\)=>\{[^}]*\}\)\(\(\)=>window\.markmap,null,(\{.*?\}),null\)<\/script>/s);
+      if (scriptMatch && scriptMatch[1]) {
+        // Parse the JSON
+        const jsonStr = scriptMatch[1];
+        return JSON.parse(jsonStr);
+      }
+      // Alternative: try to find JSON in any script tag
+      const jsonMatch = html.match(/\{[\s\S]*"content"[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      throw new Error('Nu s-a găsit structura JSON în HTML');
+    } catch (error) {
+      console.error('Eroare la extragerea datelor:', error);
+      alert('Eroare: ' + error.message);
+      return null;
+    }
+  }
+
+  // Initialize markmap
+  function initMarkmap(data) {
+    if (mm) {
+      mm.setData(data);
+    } else {
+      mm = markmap.Markmap.create('svg#mindmap', null, data);
+      window.mm = mm;
+      
+      // Initialize toolbar
+      setTimeout(() => {
+        const { Toolbar } = window.markmap;
+        const toolbar = new Toolbar();
+        toolbar.attach(mm);
+        const toolbarEl = toolbar.render();
+        toolbarEl.setAttribute('style', 'position:absolute;bottom:20px;right:20px');
+        document.body.appendChild(toolbarEl);
+      }, 100);
+      
+      // Dark mode
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('markmap-dark');
+      }
+    }
+  }
+
+  // Update mindmap from HTML
+  function updateMindmap() {
+    const html = document.getElementById('html-textarea').value;
+    if (!html.trim()) {
+      alert('Textarea este goală!');
+      return;
+    }
+    
+    const data = extractDataFromHTML(html);
+    if (data) {
+      initMarkmap(data);
+      // Save to localStorage
+      localStorage.setItem('markmap_html', html);
+    }
+  }
+
+  // Initialize
+  function init() {
+    const textarea = document.getElementById('html-textarea');
+    
+    // Load from localStorage or use default
+    const saved = localStorage.getItem('markmap_html');
+    const html = saved || defaultHTML;
+    textarea.value = html;
+    
+    // Initialize mindmap with default data
+    const data = extractDataFromHTML(html);
+    if (data) {
+      initMarkmap(data);
+    }
+    
+    // Event listener
+    document.getElementById('update-btn').addEventListener('click', updateMindmap);
+  }
+
+  // Run when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
 </body>
 </html>
