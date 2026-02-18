@@ -184,23 +184,21 @@ body {
 (function() {
   const STORAGE_KEY = 'markmap_md';
   
-  // Wait for markmap-lib to load
-  function waitForMarkmapLib(callback, maxAttempts = 50) {
+  // Wait for markmap to load (markmap-view is enough, we'll use manual parser)
+  function waitForMarkmap(callback, maxAttempts = 20) {
     let attempts = 0;
     function check() {
       attempts++;
-      // Try multiple ways to access Transformer
-      if ((window.markmap && window.markmap.Transformer) || 
-          (window.markmapLib && window.markmapLib.Transformer) ||
-          (window.markmap && window.markmap.transform)) {
+      // markmap-view is enough, we don't need markmap-lib
+      if (window.markmap && window.markmap.Markmap) {
         callback();
       } else if (attempts < maxAttempts) {
         setTimeout(check, 100);
       } else {
-        console.error('Markmap-lib failed to load after', maxAttempts, 'attempts');
+        console.error('Markmap failed to load after', maxAttempts, 'attempts');
         console.log('window.markmap:', window.markmap);
-        console.log('window.markmapLib:', window.markmapLib);
-        alert('Eroare: Markmap Transformer nu s-a încărcat. Verifică conexiunea la internet și reîncarcă pagina.');
+        // Continue anyway, we have manual parser
+        callback();
       }
     }
     check();
@@ -377,89 +375,90 @@ NU = Scalare agresivă încă`;
     try {
       console.log('Transforming markdown, length:', md.length);
       
-      // Try multiple ways to access Transformer
-      let transformer;
       let root;
       
-      // Method 1: markmapLib.Transformer
+      // Method 1: Try markmapLib.Transformer (if loaded)
       if (window.markmapLib && window.markmapLib.Transformer) {
         console.log('Using markmapLib.Transformer');
-        transformer = new window.markmapLib.Transformer();
+        const transformer = new window.markmapLib.Transformer();
         const result = transformer.transform(md);
         root = result.root;
       }
-      // Method 2: markmap.Transformer
+      // Method 2: Try markmap.Transformer (if available)
       else if (window.markmap && window.markmap.Transformer) {
         console.log('Using markmap.Transformer');
-        transformer = new window.markmap.Transformer();
+        const transformer = new window.markmap.Transformer();
         const result = transformer.transform(md);
         root = result.root;
       }
-      // Method 3: markmap.transform (direct function)
-      else if (window.markmap && typeof window.markmap.transform === 'function') {
-        console.log('Using markmap.transform directly');
-        const result = window.markmap.transform(md);
-        root = result.root;
-      }
-      // Method 4: Try to find Transformer in any namespace
-      else if (window.markmapLib && typeof window.markmapLib.transform === 'function') {
-        console.log('Using markmapLib.transform directly');
-        const result = window.markmapLib.transform(md);
-        root = result.root;
-      }
-      // Method 5: Manual parsing with markdown-it (fallback)
-      else if (window.markdownit) {
-        console.log('Using markdown-it fallback');
-        root = parseMarkdownManually(md);
-      }
+      // Method 3: Use manual parser (always works)
       else {
-        console.error('window.markmap:', window.markmap);
-        console.error('window.markmapLib:', window.markmapLib);
-        console.error('window.markdownit:', window.markdownit);
-        throw new Error('Markmap Transformer nu este disponibil. Verifică console pentru erori.');
+        console.log('Using manual markdown parser');
+        root = parseMarkdownManually(md);
       }
       
       console.log('Transform successful, root:', root);
       return root;
     } catch (error) {
       console.error('Markdown transform error:', error);
-      console.error('Available markmap:', window.markmap);
-      console.error('Available markmapLib:', window.markmapLib);
-      alert('Eroare la transformarea Markdown: ' + error.message + '\n\nVerifică consola pentru detalii.');
-      return null;
+      // Fallback to manual parser on error
+      console.log('Falling back to manual parser');
+      return parseMarkdownManually(md);
     }
   }
   
-  // Fallback: Manual markdown parsing
+  // Manual markdown parsing (always works, no dependencies)
   function parseMarkdownManually(md) {
     const lines = md.split('\n');
     const root = { content: '', children: [] };
     const stack = [{ level: 0, node: root }];
     
-    for (const line of lines) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       const trimmed = line.trim();
       if (!trimmed) continue;
       
-      // Check for headers (# ## ###)
+      // Check for headers (# ## ### #### ##### ######)
       const headerMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
       if (headerMatch) {
         const level = headerMatch[1].length;
         const content = headerMatch[2].trim();
         
-        // Pop stack until we find parent
+        // Pop stack until we find parent at lower level
         while (stack.length > 1 && stack[stack.length - 1].level >= level) {
           stack.pop();
         }
         
         const node = { content, children: [] };
-        stack[stack.length - 1].node.children.push(node);
+        const parent = stack[stack.length - 1].node;
+        if (!parent.children) parent.children = [];
+        parent.children.push(node);
         stack.push({ level, node });
       }
       // Check for list items (- or *)
       else if (trimmed.match(/^[-*]\s+/)) {
         const content = trimmed.replace(/^[-*]\s+/, '').trim();
         const node = { content, children: [] };
-        stack[stack.length - 1].node.children.push(node);
+        const parent = stack[stack.length - 1].node;
+        if (!parent.children) parent.children = [];
+        parent.children.push(node);
+      }
+      // Regular text (add to last node if exists)
+      else if (stack.length > 0) {
+        const lastNode = stack[stack.length - 1].node;
+        if (lastNode.content && lastNode.content !== '') {
+          lastNode.content += ' ' + trimmed;
+        } else {
+          lastNode.content = trimmed;
+        }
+      }
+    }
+    
+    // Clean up empty root content
+    if (root.content === '' && root.children.length > 0) {
+      // If root has children, use first child as root
+      if (root.children[0]) {
+        return root.children[0];
       }
     }
     
@@ -568,8 +567,8 @@ NU = Scalare agresivă încă`;
       });
     }
 
-    // Initialize mindmap after lib loads
-    waitForMarkmapLib(() => {
+    // Initialize mindmap after markmap loads
+    waitForMarkmap(() => {
       const currentMd = textarea ? textarea.value : defaultMarkdown;
       const data = transformMarkdown(currentMd);
       if (data) {
