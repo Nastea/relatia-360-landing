@@ -178,6 +178,7 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18.12/dist/browser/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.12/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.0.0/dist/markdown-it.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.18.12/dist/index.umd.js"></script>
 <script>
 (function() {
@@ -375,28 +376,49 @@ NU = Scalare agresivă încă`;
   function transformMarkdown(md) {
     try {
       console.log('Transforming markdown, length:', md.length);
-      console.log('window.markmap:', window.markmap);
-      console.log('window.markmapLib:', window.markmapLib);
       
       // Try multiple ways to access Transformer
-      let Transformer;
+      let transformer;
+      let root;
+      
+      // Method 1: markmapLib.Transformer
       if (window.markmapLib && window.markmapLib.Transformer) {
-        Transformer = window.markmapLib.Transformer;
         console.log('Using markmapLib.Transformer');
-      } else if (window.markmap && window.markmap.Transformer) {
-        Transformer = window.markmap.Transformer;
+        transformer = new window.markmapLib.Transformer();
+        const result = transformer.transform(md);
+        root = result.root;
+      }
+      // Method 2: markmap.Transformer
+      else if (window.markmap && window.markmap.Transformer) {
         console.log('Using markmap.Transformer');
-      } else if (window.markmap && window.markmap.transform) {
-        // Fallback: use transform directly
+        transformer = new window.markmap.Transformer();
+        const result = transformer.transform(md);
+        root = result.root;
+      }
+      // Method 3: markmap.transform (direct function)
+      else if (window.markmap && typeof window.markmap.transform === 'function') {
         console.log('Using markmap.transform directly');
         const result = window.markmap.transform(md);
-        return result.root;
-      } else {
+        root = result.root;
+      }
+      // Method 4: Try to find Transformer in any namespace
+      else if (window.markmapLib && typeof window.markmapLib.transform === 'function') {
+        console.log('Using markmapLib.transform directly');
+        const result = window.markmapLib.transform(md);
+        root = result.root;
+      }
+      // Method 5: Manual parsing with markdown-it (fallback)
+      else if (window.markdownit) {
+        console.log('Using markdown-it fallback');
+        root = parseMarkdownManually(md);
+      }
+      else {
+        console.error('window.markmap:', window.markmap);
+        console.error('window.markmapLib:', window.markmapLib);
+        console.error('window.markdownit:', window.markdownit);
         throw new Error('Markmap Transformer nu este disponibil. Verifică console pentru erori.');
       }
       
-      const transformer = new Transformer();
-      const { root } = transformer.transform(md);
       console.log('Transform successful, root:', root);
       return root;
     } catch (error) {
@@ -406,6 +428,42 @@ NU = Scalare agresivă încă`;
       alert('Eroare la transformarea Markdown: ' + error.message + '\n\nVerifică consola pentru detalii.');
       return null;
     }
+  }
+  
+  // Fallback: Manual markdown parsing
+  function parseMarkdownManually(md) {
+    const lines = md.split('\n');
+    const root = { content: '', children: [] };
+    const stack = [{ level: 0, node: root }];
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      
+      // Check for headers (# ## ###)
+      const headerMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
+      if (headerMatch) {
+        const level = headerMatch[1].length;
+        const content = headerMatch[2].trim();
+        
+        // Pop stack until we find parent
+        while (stack.length > 1 && stack[stack.length - 1].level >= level) {
+          stack.pop();
+        }
+        
+        const node = { content, children: [] };
+        stack[stack.length - 1].node.children.push(node);
+        stack.push({ level, node });
+      }
+      // Check for list items (- or *)
+      else if (trimmed.match(/^[-*]\s+/)) {
+        const content = trimmed.replace(/^[-*]\s+/, '').trim();
+        const node = { content, children: [] };
+        stack[stack.length - 1].node.children.push(node);
+      }
+    }
+    
+    return root;
   }
 
   // Update mindmap from Markdown
