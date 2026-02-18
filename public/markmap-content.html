@@ -413,46 +413,87 @@ NU = Scalare agresivă încă`;
     }
   }
 
-  // Load from localStorage or use default
+  // Load from localStorage or use default - populate textarea immediately
   function loadMarkdown() {
     const saved = localStorage.getItem(STORAGE_KEY);
     const md = saved || defaultMarkdown;
-    document.getElementById('markdown-textarea').value = md;
-    
-    // Initialize mindmap with loaded content
-    const data = transformMarkdown(md);
-    if (data) {
-      initMarkmap(data);
+    const textarea = document.getElementById('markdown-textarea');
+    if (textarea) {
+      textarea.value = md;
     }
+    
+    // Initialize mindmap with loaded content (wait for lib)
+    waitForMarkmapLib(() => {
+      const data = transformMarkdown(md);
+      if (data) {
+        initMarkmap(data);
+      }
+    });
   }
 
-  // Event listeners
-  document.getElementById('update-btn').addEventListener('click', updateMindmap);
-  document.getElementById('copy-btn').addEventListener('click', copyMarkdown);
-  document.getElementById('reset-btn').addEventListener('click', resetMarkdown);
-
-  // Ctrl/Cmd+Enter to update
-  document.getElementById('markdown-textarea').addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      updateMindmap();
+  // Initialize when DOM is ready
+  function init() {
+    console.log('Initializing markmap editor...');
+    
+    // Populate textarea immediately
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const md = saved || defaultMarkdown;
+    const textarea = document.getElementById('markdown-textarea');
+    
+    if (!textarea) {
+      console.error('Textarea not found!');
+      return;
     }
-  });
+    
+    console.log('Populating textarea with markdown...');
+    textarea.value = md;
+    console.log('Textarea populated, length:', md.length);
 
-  // Auto-save on input (debounced)
-  let saveTimeout;
-  document.getElementById('markdown-textarea').addEventListener('input', function() {
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
-      const md = this.value;
-      localStorage.setItem(STORAGE_KEY, md);
-    }, 1000);
-  });
+    // Event listeners
+    const updateBtn = document.getElementById('update-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    
+    if (updateBtn) updateBtn.addEventListener('click', updateMindmap);
+    if (copyBtn) copyBtn.addEventListener('click', copyMarkdown);
+    if (resetBtn) resetBtn.addEventListener('click', resetMarkdown);
 
-  // Initialize on load - wait for markmap-lib
-  waitForMarkmapLib(() => {
-    loadMarkdown();
-  });
+    // Ctrl/Cmd+Enter to update
+    if (textarea) {
+      textarea.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          updateMindmap();
+        }
+      });
+
+      // Auto-save on input (debounced)
+      let saveTimeout;
+      textarea.addEventListener('input', function() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+          const md = this.value;
+          localStorage.setItem(STORAGE_KEY, md);
+        }, 1000);
+      });
+    }
+
+    // Initialize mindmap after lib loads
+    waitForMarkmapLib(() => {
+      const currentMd = textarea ? textarea.value : defaultMarkdown;
+      const data = transformMarkdown(currentMd);
+      if (data) {
+        initMarkmap(data);
+      }
+    });
+  }
+
+  // Run when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
 </body>
