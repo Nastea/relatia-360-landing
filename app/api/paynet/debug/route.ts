@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getApiHost } from '@/lib/paynet';
+import { getApiHost, formatPaynetDate } from '@/lib/paynet';
 
 export async function POST(req: Request) {
   // Only allow in TEST mode
@@ -64,9 +64,6 @@ export async function POST(req: Request) {
         const testOrderId = 'test-' + testInvoice;
         const amountValue = 1; // Use amount directly (1 MDL, not 100 minor units)
 
-        // Normalize date format: ISO without milliseconds and WITHOUT "Z"
-        const isoNoMsNoZ = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
-
         // Product with ALL fields in EXACT order matching Reg.json template
         const productTotalAmount = amountValue;
         const product = {
@@ -108,8 +105,8 @@ export async function POST(req: Request) {
           },
           Payer: null,
           Currency: 498,
-          ExternalDate: isoNoMsNoZ(new Date()),
-          ExpiryDate: isoNoMsNoZ(new Date(Date.now() + 2 * 60 * 60 * 1000)),
+          ExternalDate: formatPaynetDate(new Date()),
+          ExpiryDate: formatPaynetDate(new Date(Date.now() + 2 * 60 * 60 * 1000)),
           Services: [
             {
               Name: 'RELAȚIA 360',

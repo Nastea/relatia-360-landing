@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { getApiHost, getPortalHost } from '@/lib/paynet';
+import { getApiHost, getPortalHost, formatPaynetDate } from '@/lib/paynet';
 import { randomUUID, randomBytes } from 'crypto';
 
 function validatePaynetEnvVars(): { isValid: boolean; missing: string[] } {
@@ -211,8 +211,6 @@ export async function POST(req: Request) {
 
     // Build base URL for callbacks
     const baseUrl = callbackUrl.replace('/api/paynet/callback', '');
-    // Date formatter: ISO without milliseconds and without 'Z'
-    const iso = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '');
 
     // Define attempts: PHP SDK structure (NO Signature, SignVersion, MoneyType, WITH Lang) vs Reg.json structure (WITH them, NO Lang)
     // Also test JSON vs form-urlencoded
@@ -280,8 +278,8 @@ export async function POST(req: Request) {
           PhoneNumber: '79306530', // 8-digit numeric string
         },
         Currency: 498, // int 498 for MDL
-        ExternalDate: iso(new Date()), // "YYYY-MM-DDTHH:mm:ss"
-        ExpiryDate: iso(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
+        ExternalDate: formatPaynetDate(new Date()), // today in Moldova timezone
+        ExpiryDate: formatPaynetDate(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
         Services: [
           {
             Name: 'RELAȚIA 360',
