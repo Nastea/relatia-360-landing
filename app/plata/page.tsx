@@ -37,14 +37,13 @@ export default function PlataPage() {
       return;
     }
 
-    if (json.ok && json.payment_id && json.redirect_base) {
-      // Paynet redirect format
-      const paymentUrl = `${json.redirect_base}?operation=${json.payment_id}&Lang=ro`;
-      window.location.assign(paymentUrl);
-      // Don't set isLoading to false here - we're redirecting
-    } else if (json.payment_url) {
-      // Fallback for old format
+    if (json.ok && json.payment_url) {
+      // Full Paynet URL with operation, Signature, ExpiryDate, LinkUrlSuccess/Cancel (required by getecom)
       window.location.assign(json.payment_url);
+      // Don't set isLoading to false here - we're redirecting
+    } else if (json.ok && json.payment_id && json.redirect_base) {
+      // Fallback: build minimal URL (may 404 if Paynet requires full params)
+      window.location.assign(`${json.redirect_base}?operation=${json.payment_id}&Lang=ro`);
     } else {
       // No payment URL in response
       setError(json.details || json.error || 'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.');
