@@ -42,11 +42,11 @@ export default function PlataPage() {
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = json.paynet_redirect_action;
-      Object.entries(json.paynet_redirect_params).forEach(([key, value]) => {
+      Object.entries(json.paynet_redirect_params as Record<string, string>).forEach(([key, value]) => {
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = key;
-        input.value = value;
+        input.value = String(value);
         form.appendChild(input);
       });
       document.body.appendChild(form);
