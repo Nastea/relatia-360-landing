@@ -173,41 +173,59 @@ export async function POST(req: Request) {
     const saleAreaCode = process.env.PAYNET_SALE_AREA_CODE!;
     const callbackUrl = process.env.PAYNET_CALLBACK_URL!;
 
-    // Authenticate with Paynet (include salearea in auth per Postman example)
-    const authParams = new URLSearchParams({
+    // Authenticate with Paynet. Try with merchantcode+salearea first (Postman), then with username+password only (PHP SDK).
+    const username = process.env.PAYNET_USERNAME!;
+    const password = process.env.PAYNET_PASSWORD!;
+
+    const tryAuth = async (params: Record<string, string>) => {
+      const body = new URLSearchParams(params).toString();
+      const res = await fetch(`${apiHost}/auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+      });
+      const text = await res.text();
+      return { ok: res.ok, status: res.status, text };
+    };
+
+    let authResponse = await tryAuth({
       grant_type: 'password',
-      username: process.env.PAYNET_USERNAME!,
-      password: process.env.PAYNET_PASSWORD!,
+      username,
+      password,
       merchantcode: merchantCode,
       salearea: saleAreaCode,
     });
 
-    const authResponse = await fetch(`${apiHost}/auth`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: authParams.toString(),
-    });
+    if (!authResponse.ok && authResponse.text.toLowerCase().includes('invalid_grant')) {
+      console.log('PAYNET AUTH: invalid_grant with merchantcode+salearea, retrying with username+password only (PHP SDK style)');
+      authResponse = await tryAuth({
+        grant_type: 'password',
+        username,
+        password,
+      });
+    }
 
     if (!authResponse.ok) {
-      const authErrorText = await authResponse.text();
       console.error('PAYNET AUTH STATUS', authResponse.status);
-      console.error('PAYNET AUTH BODY', authErrorText);
+      console.error('PAYNET AUTH BODY', authResponse.text);
+      const hint = authResponse.text.toLowerCase().includes('invalid_grant')
+        ? ' Check PAYNET_USERNAME (User ID) and PAYNET_PASSWORD. No extra spaces. If you use PAYNET_SALE_AREA_CODE, confirm the value with Paynet.'
+        : undefined;
       return NextResponse.json(
         {
           error: 'PAYNET_API_ERROR',
           step: 'auth',
           status: authResponse.status,
-          details: authErrorText,
+          details: authResponse.text,
+          ...(hint && { hint }),
         },
         { status: 502 }
       );
     }
 
-    let authData;
+    let authData: { access_token?: string; token?: string };
     try {
-      authData = await authResponse.json();
+      authData = JSON.parse(authResponse.text);
     } catch (e) {
       console.error('PAYNET AUTH PARSE ERROR', e);
       return NextResponse.json(
