@@ -438,20 +438,19 @@ export async function POST(req: Request) {
           // Continue anyway, payment was created
         }
 
-        // Build full Paynet redirect URL (getecom requires operation, Signature, ExpiryDate, LinkUrlSucces, LinkUrlCancel, Lang)
+        // Paynet getecom expects POST (form), not GET (per psp-redirect.html)
         const successUrl = `${baseUrl}/multumim?order=${orderId}`;
         const cancelUrl = `${baseUrl}/plata?cancel=1&order=${orderId}`;
         const expiryDate = formatPaynetDate(new Date(Date.now() + 2 * 60 * 60 * 1000));
-        const redirectBase = `${portalHost}/acquiring/getecom`;
-        const redirectParams = new URLSearchParams({
+        const redirectAction = `${portalHost}/acquiring/getecom`;
+        const paynet_redirect_params: Record<string, string> = {
           operation: paymentId.toString(),
-          LinkUrlSucces: successUrl, // Paynet param name (typo in their API)
+          LinkUrlSucces: successUrl,
           LinkUrlCancel: cancelUrl,
           ExpiryDate: expiryDate,
           Lang: 'ro',
-        });
-        if (signature) redirectParams.set('Signature', signature);
-        const payment_url = `${redirectBase}?${redirectParams.toString()}`;
+        };
+        if (signature) paynet_redirect_params.Signature = signature;
 
         return NextResponse.json({
           ok: true,
@@ -460,8 +459,8 @@ export async function POST(req: Request) {
           payment_id: paymentId.toString(),
           signature: signature || null,
           attempt: attempt.id,
-          redirect_base: redirectBase,
-          payment_url, // full URL with all params so Paynet getecom accepts it
+          paynet_redirect_action: redirectAction,
+          paynet_redirect_params,
         });
       }
 

@@ -37,12 +37,23 @@ export default function PlataPage() {
       return;
     }
 
-    if (json.ok && json.payment_url) {
-      // Full Paynet URL with operation, Signature, ExpiryDate, LinkUrlSuccess/Cancel (required by getecom)
+    if (json.ok && json.paynet_redirect_action && json.paynet_redirect_params) {
+      // Paynet getecom expects POST (form submit), not GET
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = json.paynet_redirect_action;
+      Object.entries(json.paynet_redirect_params).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    } else if (json.ok && json.payment_url) {
       window.location.assign(json.payment_url);
-      // Don't set isLoading to false here - we're redirecting
     } else if (json.ok && json.payment_id && json.redirect_base) {
-      // Fallback: build minimal URL (may 404 if Paynet requires full params)
       window.location.assign(`${json.redirect_base}?operation=${json.payment_id}&Lang=ro`);
     } else {
       // No payment URL in response
