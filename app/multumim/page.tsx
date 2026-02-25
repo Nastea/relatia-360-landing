@@ -13,6 +13,7 @@ function MultumimContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [telegramBotUsername, setTelegramBotUsername] = useState<string>('Relatia360Bot');
+  const [confirming, setConfirming] = useState(false);
 
   // Fetch Telegram bot username from API
   useEffect(() => {
@@ -59,16 +60,16 @@ function MultumimContent() {
           }
         }
 
+        // After first response we're done "loading" so user can see confirm button if still pending
+        setIsLoading(false);
+
         // Stop polling if paid or failed
         if (data.status === 'paid' || data.status === 'failed') {
           if (pollInterval) clearInterval(pollInterval);
-          setIsLoading(false);
         } else {
           pollCount++;
           if (pollCount >= maxPolls) {
-            // Timeout after max polls
             if (pollInterval) clearInterval(pollInterval);
-            setIsLoading(false);
             setError('Timeout waiting for payment confirmation');
           }
         }
@@ -96,6 +97,35 @@ function MultumimContent() {
   const telegramUrl = accessToken
     ? `https://t.me/${telegramBotUsername}?start=access_${accessToken}`
     : `https://t.me/${telegramBotUsername}`;
+
+  const handleConfirmTest = async () => {
+    if (!orderId || confirming) return;
+    setConfirming(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/paynet/confirm-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Nu s-a putut confirma plata');
+        setConfirming(false);
+        return;
+      }
+      setStatus('paid');
+      setIsLoading(false);
+      const accessRes = await fetch(`/api/orders/access?order=${orderId}`);
+      if (accessRes.ok) {
+        const accessData = await accessRes.json();
+        setAccessToken(accessData.access_token);
+      }
+    } catch {
+      setError('Eroare la confirmare');
+      setConfirming(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden" style={{ background: "linear-gradient(to bottom, #f5ede3, #ebdfce)" }}>
@@ -146,6 +176,31 @@ function MultumimContent() {
                 <div className="flex justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "#E56B6F" }}></div>
                 </div>
+              </div>
+            )}
+
+            {/* Buton confirmare manuală când Paynet nu trimite callback */}
+            {!isLoading && status === 'pending' && orderId && (
+              <div
+                className="p-4 rounded-lg text-sm text-center"
+                style={{
+                  backgroundColor: "#fef3c7",
+                  color: "#92400e",
+                  border: "1px solid #f59e0b",
+                }}
+              >
+                <p className="mb-3">
+                  Nu se confirmă automat? Dacă ai finalizat deja plata, apasă butonul de mai jos.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleConfirmTest}
+                  disabled={confirming}
+                  className="px-6 py-3 rounded-lg font-semibold text-white disabled:opacity-50"
+                  style={{ backgroundColor: "#d97706" }}
+                >
+                  {confirming ? 'Se confirmă...' : 'Am plătit deja – confirmă plata'}
+                </button>
               </div>
             )}
 
