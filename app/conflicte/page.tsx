@@ -87,8 +87,8 @@ export default function Relatia360Page() {
                 Descoperă ce se întâmplă <strong>DE FAPT</strong> în comunicare când apare conflictul — și de ce tot ce ai încercat până acum nu a funcționat.
               </p>
 
-              {/* CTA Button */}
-              <div>
+              {/* CTA Buttons */}
+              <div className="flex flex-col items-center gap-3">
                 <Link
                   href="/plata"
                   className="inline-block px-6 py-3 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all hover:opacity-90"
@@ -98,17 +98,19 @@ export default function Relatia360Page() {
                     boxShadow: "0 4px 12px rgba(229, 107, 111, 0.4)",
                   }}
                 >
-                  Vreau acces la curs
+                  Vreau acces la cursul complet
                 </Link>
-                <div className="mt-4">
-                  <Link
-                    href="/quiz-uri"
-                    className="inline-block text-sm font-semibold underline underline-offset-4 hover:opacity-80"
-                    style={{ color: "#E56B6F" }}
-                  >
-                    Sau începe cu lecția 1 gratuită →
-                  </Link>
-                </div>
+                <Link
+                  href="/quiz-uri"
+                  className="inline-block px-6 py-3 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all hover:opacity-90"
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    color: "#E56B6F",
+                    border: "1px solid #E56B6F",
+                  }}
+                >
+                  Vreau acces la lecția gratuită
+                </Link>
               </div>
             </div>
 
@@ -161,8 +163,8 @@ export default function Relatia360Page() {
                 Descoperă ce se întâmplă <strong>DE FAPT</strong> în comunicare când apare conflictul — și de ce tot ce ai încercat până acum nu a funcționat.
               </p>
 
-            {/* CTA Button */}
-            <div>
+            {/* CTA Buttons */}
+            <div className="flex flex-col items-start gap-3">
               <Link
                 href="/plata"
                 className="inline-block px-8 py-4 rounded-lg text-base font-semibold uppercase tracking-wide transition-all hover:opacity-90"
@@ -172,17 +174,19 @@ export default function Relatia360Page() {
                   boxShadow: "0 4px 12px rgba(229, 107, 111, 0.4)",
                 }}
               >
-                Vreau acces la curs
+                Vreau acces la cursul complet
               </Link>
-              <div className="mt-4">
-                <Link
-                  href="/quiz-uri"
-                  className="inline-block text-base font-semibold underline underline-offset-4 hover:opacity-80"
-                  style={{ color: "#E56B6F" }}
-                >
-                  Sau începe cu lecția 1 gratuită →
-                </Link>
-              </div>
+              <Link
+                href="/quiz-uri"
+                className="inline-block px-8 py-4 rounded-lg text-base font-semibold uppercase tracking-wide transition-all hover:opacity-90"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  color: "#E56B6F",
+                  border: "1px solid #E56B6F",
+                }}
+              >
+                Vreau acces la lecția gratuită
+              </Link>
             </div>
             </div>
 

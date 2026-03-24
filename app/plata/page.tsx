@@ -191,10 +191,14 @@ export default function PlataPage() {
               <div className="text-center">
                 <Link
                   href="/conflicte"
-                  className="inline-block text-base md:text-lg font-bold underline underline-offset-4 transition-opacity hover:opacity-80"
-                  style={{ color: "#E56B6F" }}
+                  className="inline-block px-6 py-3 rounded-lg text-sm md:text-base font-semibold uppercase tracking-wide transition-all hover:opacity-90"
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    color: "#E56B6F",
+                    border: "1px solid #E56B6F",
+                  }}
                 >
-                  Sau începe cu lecția 1 gratuită →
+                  Vreau acces la lecția gratuită
                 </Link>
               </div>
 
