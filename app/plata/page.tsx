@@ -21,8 +21,8 @@ export default function PlataPage() {
       },
       body: JSON.stringify({
         productId: 'relatia360_conflicte',
-        amount: 990,
-        currency: 'MDL',
+        amount: 49,
+        currency: 'EUR',
       }),
     });
 

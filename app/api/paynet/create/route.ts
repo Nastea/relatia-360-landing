@@ -87,7 +87,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { productId, amount, currency = 'MDL' } = body;
+    const { productId, amount, currency = 'EUR' } = body;
 
     // Body validation
     if (!productId || typeof productId !== 'string' || productId.trim() === '') {
@@ -110,6 +110,22 @@ export async function POST(req: Request) {
       );
     }
 
+    const normalizedCurrency = String(currency).toUpperCase();
+    const currencyCodeMap: Record<string, number> = {
+      EUR: 978,
+      MDL: 498,
+    };
+    const paynetCurrencyCode = currencyCodeMap[normalizedCurrency];
+    if (!paynetCurrencyCode) {
+      return NextResponse.json(
+        {
+          error: 'BAD_REQUEST',
+          details: 'Unsupported currency. Allowed: EUR, MDL',
+        },
+        { status: 400 }
+      );
+    }
+
     // Generate invoice ONCE (reuse for all attempts)
     // Generate invoice as small integer (10 digits max) matching Reg.json style
     const invoice = Math.floor(Date.now() / 1000);
@@ -123,7 +139,7 @@ export async function POST(req: Request) {
         .insert({
           product_id: productId,
           amount: amount,
-          currency: currency,
+          currency: normalizedCurrency,
           status: 'pending',
           invoice: String(invoice),
           access_token: randomBytes(24).toString('base64url'), // Generate access token for Paynet orders too
@@ -318,7 +334,7 @@ export async function POST(req: Request) {
           Address: 'Online',
           PhoneNumber: '79306530', // 8-digit numeric string
         },
-        Currency: 498, // int 498 for MDL
+        Currency: paynetCurrencyCode, // 978 EUR, 498 MDL
         ExternalDate: formatPaynetDate(new Date()), // today in Moldova timezone
         ExpiryDate: formatPaynetDate(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
         Services: [

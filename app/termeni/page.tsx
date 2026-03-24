@@ -121,7 +121,7 @@ export default function TermeniPage() {
               </h2>
               <div className="space-y-3 text-lg" style={{ color: "#6B7280" }}>
                 <p>
-                  Prețul este afișat pe pagina de prezentare și este exprimat în lei (MDL), incluzând TVA, dacă este cazul.
+                  Prețul este afișat pe pagina de prezentare și este exprimat în euro (EUR), incluzând TVA, dacă este cazul.
                 </p>
                 <p>
                   Plata se efectuează online prin metodele disponibile pe site (ex: Visa, Paynet sau alte metode active la momentul achiziției).

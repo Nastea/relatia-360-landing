@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         // Test Payments/Send with Reg.json structure
         const testInvoice = Math.floor(Date.now() / 1000); // Small integer (10 digits max)
         const testOrderId = 'test-' + testInvoice;
-        const amountValue = 1; // Use amount directly (1 MDL, not 100 minor units)
+        const amountValue = 1; // Use amount directly (1 EUR, not 100 minor units)
 
         // Product with ALL fields in EXACT order matching Reg.json template
         const productTotalAmount = amountValue;
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
             PhoneNumber: '79306530', // 8 digits
           },
           Payer: null,
-          Currency: 498,
+          Currency: 978,
           ExternalDate: formatPaynetDate(new Date()),
           ExpiryDate: formatPaynetDate(new Date(Date.now() + 2 * 60 * 60 * 1000)),
           Services: [
