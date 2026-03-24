@@ -170,6 +170,40 @@ export async function POST(req: Request) {
 
     // /start command
     if (lower.startsWith('/start')) {
+      const quizPayload = extractQuizPayload(text);
+      if (quizPayload) {
+        const { quizSlug, resultKey } = quizPayload;
+
+        await sendMessage({
+          botToken,
+          chatId,
+          text:
+            'Am primit rezultatul tău din quiz ✅\n' +
+            `Quiz: ${quizSlug}\n` +
+            `Rezultat intern: ${resultKey}\n\n` +
+            'Îți trimitem în continuare ghidarea potrivită aici, pe Telegram.',
+        });
+
+        const resultsChatIdRaw = process.env.TELEGRAM_QUIZ_RESULTS_CHAT_ID;
+        if (resultsChatIdRaw) {
+          const resultsChatId = Number(resultsChatIdRaw);
+          if (Number.isFinite(resultsChatId)) {
+            await sendMessage({
+              botToken,
+              chatId: resultsChatId,
+              text:
+                'Rezultat quiz nou\n' +
+                `user_id: ${telegramUserId}\n` +
+                `username: ${username ?? '-'}\n` +
+                `quiz: ${quizSlug}\n` +
+                `result: ${resultKey}`,
+            });
+          }
+        }
+
+        return NextResponse.json({ ok: true });
+      }
+
       const tokenFromStart = extractTokenFromText(text);
 
       if (tokenFromStart) {
@@ -241,6 +275,17 @@ export async function POST(req: Request) {
     // Always return 200 to avoid Telegram retries
     return NextResponse.json({ ok: true });
   }
+}
+
+function extractQuizPayload(
+  text: string,
+): { quizSlug: string; resultKey: 'A' | 'B' | 'C' | 'D' } | null {
+  // Expected deep link payload format: /start quiz_<slug_with_underscores>_<A|B|C|D>
+  const match = text.trim().match(/^\/start\s+quiz_([a-z0-9_]+)_([ABCD])$/i);
+  if (!match) return null;
+  const quizSlug = match[1].replace(/_/g, '-');
+  const resultKey = match[2].toUpperCase() as 'A' | 'B' | 'C' | 'D';
+  return { quizSlug, resultKey };
 }
 
 async function handleTokenVerification(params: {

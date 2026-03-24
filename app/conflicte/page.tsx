@@ -100,6 +100,15 @@ export default function Relatia360Page() {
                 >
                   Vreau acces la curs
                 </Link>
+                <div className="mt-4">
+                  <Link
+                    href="/quiz-uri"
+                    className="inline-block text-sm font-semibold underline underline-offset-4 hover:opacity-80"
+                    style={{ color: "#E56B6F" }}
+                  >
+                    Sau începe cu lecția 1 gratuită →
+                  </Link>
+                </div>
               </div>
             </div>
 
@@ -165,6 +174,15 @@ export default function Relatia360Page() {
               >
                 Vreau acces la curs
               </Link>
+              <div className="mt-4">
+                <Link
+                  href="/quiz-uri"
+                  className="inline-block text-base font-semibold underline underline-offset-4 hover:opacity-80"
+                  style={{ color: "#E56B6F" }}
+                >
+                  Sau începe cu lecția 1 gratuită →
+                </Link>
+              </div>
             </div>
             </div>
 

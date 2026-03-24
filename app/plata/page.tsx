@@ -98,6 +98,17 @@ export default function PlataPage() {
               <p className="text-lg" style={{ color: "#6B7280" }}>
                 Curs practic de comunicare în relații
               </p>
+              <div
+                className="mt-5 inline-flex items-center gap-2 px-5 py-2 rounded-full"
+                style={{
+                  backgroundColor: "#fff1f2",
+                  border: "1px solid #fecdd3",
+                }}
+              >
+                <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: "#9f1239" }}>
+                  Preț: 49 EUR
+                </span>
+              </div>
             </div>
 
             {/* Terms Checkbox */}
@@ -173,9 +184,19 @@ export default function PlataPage() {
                 {isLoading 
                   ? "Se procesează..." 
                   : acceptedTerms 
-                    ? "Plătește" 
+                    ? "Plătește 49 EUR" 
                     : "Bifează termenii pentru a continua"}
               </button>
+
+              <div className="text-center">
+                <Link
+                  href="/conflicte"
+                  className="inline-block text-base md:text-lg font-bold underline underline-offset-4 transition-opacity hover:opacity-80"
+                  style={{ color: "#E56B6F" }}
+                >
+                  Sau începe cu lecția 1 gratuită →
+                </Link>
+              </div>
 
               {/* Info Note */}
               <div className="pt-4 text-center">
