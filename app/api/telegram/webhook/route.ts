@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { extractTokenFromText } from '@/lib/token';
 import { verifyAccessTokenAndBind } from '@/lib/telegramVerify';
 import { sendMessage, sendMainMenu, answerCallbackQuery } from '@/lib/telegram';
+import { getProduct } from '@/lib/products';
 
 type TelegramUser = {
   id: number;
@@ -305,13 +306,20 @@ async function handleTokenVerification(params: {
   });
 
   if (result.ok) {
+    const product = getProduct(result.productId);
+
     await sendMessage({
       botToken,
       chatId,
       text:
+        product?.telegramConfirmation ??
         'Acces confirmat ✅\nAi acum acces la cursul RELAȚIA 360 - De la conflict la conectare.',
     });
-    await sendMainMenu({ botToken, chatId, siteUrl });
+
+    // Live-event tickets don't get the course menu — just the confirmation.
+    if (product?.kind !== 'event') {
+      await sendMainMenu({ botToken, chatId, siteUrl });
+    }
     return;
   }
 

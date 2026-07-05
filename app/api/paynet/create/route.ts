@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { getApiHost, getPortalHost, formatPaynetDate } from '@/lib/paynet';
+import { getProduct, resolveAmount } from '@/lib/products';
 import { randomUUID, randomBytes } from 'crypto';
 
 function validatePaynetEnvVars(): { isValid: boolean; missing: string[] } {
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { productId, amount, currency = 'EUR' } = body;
+    const { productId, amount: bodyAmount, currency: bodyCurrency = 'EUR' } = body;
 
     // Body validation
     if (!productId || typeof productId !== 'string' || productId.trim() === '') {
@@ -98,6 +99,30 @@ export async function POST(req: Request) {
         },
         { status: 400 }
       );
+    }
+
+    // Known products are authoritative on the server (price/currency/name come
+    // from the registry, not the client). Unknown products fall back to the
+    // amount/currency sent in the body (backwards compatible).
+    const productConfig = getProduct(productId);
+    let amount: number = bodyAmount;
+    let currency: string = bodyCurrency;
+    if (productConfig) {
+      currency = productConfig.currency;
+      if (productConfig.earlyBird) {
+        // Count paid tickets so far to decide early-bird vs regular price.
+        const { count, error: countError } = await supabaseAdmin
+          .from('orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('product_id', productId)
+          .eq('status', 'paid');
+        if (countError) {
+          console.error('PAYNET_EARLYBIRD_COUNT_ERROR', countError);
+        }
+        amount = resolveAmount(productConfig, count ?? 0);
+      } else {
+        amount = productConfig.amount;
+      }
     }
 
     if (!amount || typeof amount !== 'number' || amount <= 0) {
@@ -304,10 +329,10 @@ export async function POST(req: Request) {
         QualitiesConcat: null,
         LineNo: 1,
         GroupId: null,
-        Code: 'relatia360',
+        Code: productConfig?.id ?? 'relatia360',
         Barcode: 3601,
-        Name: 'RELAȚIA 360 – De la conflict la conectare',
-        Description: 'Acces online',
+        Name: productConfig?.name ?? 'RELAȚIA 360 – De la conflict la conectare',
+        Description: productConfig?.description ?? 'Acces online',
         UnitPrice: chosenAmount, // int
         UnitProduct: null,
         Quantity: 100, // int - in minor units (100 = 1.00) per Reg.json example where 200 = 2.00
@@ -339,8 +364,8 @@ export async function POST(req: Request) {
         ExpiryDate: formatPaynetDate(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
         Services: [
           {
-            Name: 'RELAȚIA 360',
-            Description: 'Curs practic de comunicare în relații',
+            Name: productConfig?.name ?? 'RELAȚIA 360',
+            Description: productConfig?.description ?? 'Curs practic de comunicare în relații',
             Amount: chosenAmount, // Uppercase Amount (matching Reg.json)
             Products: [product], // Uppercase Products (matching Reg.json)
           },
