@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import TicketButton from "./TicketButton";
+import PriceBlock from "./PriceBlock";
 
 /* =============================================================================
  *  Paletă
@@ -17,17 +18,15 @@ const GOLD = "#B8975A";
 const EVENT = {
   eyebrow: "Eveniment de inteligență financiară",
   title: "Psihologia Banilor",
-  lead: "Pentru cei care vor claritate, stabilitate și creștere reală.",
+  lead: "Câți bani câștigi depinde direct de felul în care gândești.",
   tagline:
-    "Nu e despre bani în sine, ci despre inteligența financiară din spatele lor — cum gândești, cum câștigi și cum crești. Patru ore, simplu și practic, în 2026.",
+    "Înțelegi tiparele care îți conduc deciziile, felul în care câștigi și cum îți faci banii să crească.",
   date: "8 august 2026",
   time: "14:00 – 18:00",
   duration: "4 ore",
   venue: "Chișinău", // public — adresa exactă se transmite doar participanților, pe Telegram
   price: {
     current: "990 lei",
-    note: "Primele 20 de bilete",
-    regular: "1290 lei",
   },
 };
 
@@ -38,6 +37,7 @@ const PAINS = [
   "Încerci să economisești, dar nu reușești constant.",
   "Ai idei de business, dar nu știi de unde să începi.",
   "Simți frică sau confuzie când vine vorba de investiții.",
+  "Repeți aceleași tipare cu banii, deși ți-ai promis că de data asta va fi altfel.",
 ];
 
 // Structura evenimentului — 3 module = 3 vorbitori
@@ -47,8 +47,8 @@ const MODULES = [
     moduleTitle: "Psihologia banilor",
     name: "Lilia Dubița",
     role: "Psiholog",
-    photo: "/images/speakers/lilia1.png",
-    imgPos: "center 20%",
+    photo: "/images/speakers/lilia.png",
+    imgPos: "center 22%",
     focus:
       "Tiparele mentale și emoționale care îți influențează banii și deciziile din viață.",
     bio: "Psiholog cu peste 13 ani de experiență privată, specializată în relații, dezvoltare personală și comunicare eficientă.",
@@ -66,8 +66,8 @@ const MODULES = [
     moduleTitle: "Ideea ta poate deveni o afacere?",
     name: "Daniela Croitoru",
     role: "Antreprenoare",
-    photo: "/images/speakers/daniela.jpg",
-    imgPos: "center 15%",
+    photo: "/images/speakers/daniela.png",
+    imgPos: "center 14%",
     focus: "Transformarea: idee → acțiune → venit.",
     bio: "Antreprenoare în beauty și echipamente medicale, cu peste 10 ani de experiență. A pornit de la zero și a construit o afacere reală, trecând prin toate etapele antreprenoriatului.",
     learnLabel: "Vei învăța:",
@@ -84,8 +84,8 @@ const MODULES = [
     moduleTitle: "Inteligență financiară & investiții",
     name: "Dorin Ciochină",
     role: "Investitor | Școala Banilor",
-    photo: "/images/speakers/dorin1.PNG",
-    imgPos: "center 25%",
+    photo: "/images/speakers/dorin.png",
+    imgPos: "center 12%",
     focus: "Momentul în care banii capătă structură și direcție.",
     bio: "Investitor cu peste 8 ani de experiență în piețele financiare și peste 10.000 de cursanți formați.",
     learnLabel: "Vei învăța:",
@@ -134,8 +134,8 @@ const FAQ = [
     a: "Nu. Totul e explicat simplu și practic, de la zero. Vii pentru claritate, nu pentru teorie.",
   },
   {
-    q: "Vin dacă am doar o idee de business, nu o afacere?",
-    a: "Da. Un modul întreg e despre cum validezi o idee și cum faci primii pași concreți.",
+    q: "Trebuie să vreau o afacere ca să vin?",
+    a: "Nu. Evenimentul e la fel de util dacă ești angajat și vrei doar claritate cu banii tăi. Nu ai nevoie de o idee de business — pleci cu un sistem clar despre venituri, economii și primii pași în investiții, indiferent dacă pornești sau nu ceva pe cont propriu.",
   },
   {
     q: "Cum primesc confirmarea?",
@@ -272,12 +272,6 @@ export default function PsihologiaBanilorPage() {
           >
             Vreau bilet
           </Link>
-          <p className="mt-4 text-sm" style={{ color: "rgba(247,241,232,0.75)" }}>
-            {EVENT.price.current} · {EVENT.price.note.toLowerCase()}
-          </p>
-          <p className="mt-2 text-xs uppercase" style={{ color: GOLD, letterSpacing: "0.15em" }}>
-            Participare exclusiv live · locuri limitate
-          </p>
         </div>
       </section>
 
@@ -286,6 +280,10 @@ export default function PsihologiaBanilorPage() {
         <div className="mx-auto px-4 sm:px-6 max-w-5xl w-full">
           <Eyebrow>De ce acum</Eyebrow>
           <SectionHeading>Îți sună cunoscut?</SectionHeading>
+          <p className="text-center text-base md:text-lg mt-5 max-w-2xl mx-auto" style={{ color: MUTED }}>
+            Fiecare nivel financiar cere un alt mod de a gândi. Cele mai multe
+            blocaje cu banii pornesc din tipare, decizii și emoții.
+          </p>
 
           <div className="grid sm:grid-cols-2 gap-4 md:gap-5 mt-12">
             {PAINS.map((text) => (
@@ -307,15 +305,14 @@ export default function PsihologiaBanilorPage() {
             style={{ backgroundColor: INK, boxShadow: "0 20px 50px rgba(31,41,51,0.25)" }}
           >
             <p className="text-xs font-semibold uppercase mb-4" style={{ color: GOLD, letterSpacing: "0.2em" }}>
-              Adevărul
+              Ideea de bază
             </p>
             <p
               className="text-2xl md:text-4xl leading-snug"
               style={{ color: "#FFFFFF", fontFamily: "var(--font-heading)" }}
             >
-              Nu lipsa banilor e problema.
-              <br />
-              Ci lipsa unui <span style={{ color: GOLD }}>sistem clar</span> despre bani.
+              Schimbă <span style={{ color: GOLD }}>cum gândești</span> despre bani,
+              altfel rămâi la același nivel financiar — indiferent cât muncești.
             </p>
           </div>
         </div>
@@ -327,9 +324,8 @@ export default function PsihologiaBanilorPage() {
           <Eyebrow>Ce face diferit</Eyebrow>
           <SectionHeading>Psihologie + business + investiții</SectionHeading>
           <p className="text-center text-base md:text-lg mt-5 mb-14 max-w-2xl mx-auto" style={{ color: MUTED }}>
-            Majoritatea evenimentelor vorbesc despre bani pe bucăți — ori psihologie,
-            ori business, ori investiții. Aici le ai pe toate trei, într-un singur
-            parcurs logic.
+            Psihologie, business și investiții — cele trei laturi ale banilor,
+            într-un singur parcurs logic: cum gândești, cum câștigi, cum crești.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
@@ -533,23 +529,7 @@ export default function PsihologiaBanilorPage() {
           <SectionHeading>Rezervă-ți locul</SectionHeading>
 
           <div className="mt-12 rounded-2xl p-8 md:p-12 text-center" style={cardStyle}>
-            <p className="text-sm uppercase tracking-wide mb-3" style={{ color: MUTED }}>
-              Preț bilet
-            </p>
-            <div className="text-5xl md:text-6xl mb-3" style={{ color: INK, fontFamily: "var(--font-heading)" }}>
-              {EVENT.price.current}
-            </div>
-            <div
-              className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full mb-3"
-              style={{ backgroundColor: "rgba(184,151,90,0.12)", border: `1px solid ${GOLD}` }}
-            >
-              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: GOLD }}>
-                {EVENT.price.note}
-              </span>
-            </div>
-            <p className="text-sm mb-8" style={{ color: MUTED }}>
-              apoi {EVENT.price.regular}
-            </p>
+            <PriceBlock productId="psihologia_banilor" earlyBirdAmount={990} regularAmount={990} />
 
             <TicketButton label="Vreau bilet" />
           </div>

@@ -42,14 +42,15 @@ export const PRODUCTS: Record<string, ProductConfig> = {
   },
 
   // Live event: Psihologia Banilor
-  // 990 lei for the first 20 paid tickets, then 1290 lei.
+  // Preț fix 990 lei — fără modificare automată.
+  // Pentru a reactiva early-bird (990 pentru primele 20, apoi 1290):
+  //   amount: 1290, earlyBird: { amount: 990, limit: 20 }
   psihologia_banilor: {
     id: 'psihologia_banilor',
     name: 'PSIHOLOGIA BANILOR – Eveniment live',
     description: 'Bilet de participare la evenimentul live Psihologia Banilor',
-    amount: 1290,
+    amount: 990,
     currency: 'MDL',
-    earlyBird: { amount: 990, limit: 20 },
     kind: 'event',
     telegramConfirmation:
       'Înscriere confirmată ✅\nEști înscris la evenimentul live PSIHOLOGIA BANILOR. ' +
