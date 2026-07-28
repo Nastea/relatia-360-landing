@@ -43,6 +43,18 @@ function MultumimContent() {
 
     const checkStatus = async () => {
       try {
+        // Confirmă activ la Paynet (nu depinde de callback). No-op pentru comenzi
+        // deja plătite sau fără invoice Paynet.
+        try {
+          await fetch('/api/paynet/check-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId }),
+          });
+        } catch {
+          /* ignorăm — polling-ul pe status continuă oricum */
+        }
+
         const response = await fetch(`/api/orders/status?order=${orderId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch order status');

@@ -1,0 +1,6 @@
+POST https://api-merchant.test.paynet.md/api/Payments/Send
+Authorization: Bearer ***
+Content-Type: application/json
+{"Invoice":1735689600,"MerchantCode":"982657","SaleAreaCode":"https_liliadubita_md","LinkUrlSuccess":"https://liliadubita.md/multumim?order=550e8400-e29b-41d4-a716-446655440000","LinkUrlCancel":"https://liliadubita.md/plata?cancel=1&order=550e8400-e29b-41d4-a716-446655440000","Signature":null,"SignVersion":"v01","Customer":{"Code":"no-reply@liliadubita.md","Name":"Customer","NameFirst":"Customer","NameLast":"Customer","email":"no-reply@liliadubita.md","Country":"Moldova","City":"Chisinau","Address":"Online","PhoneNumber":"79306530"},"Payer":null,"Currency":498,"ExternalDate":"2024-12-31T12:00:00","ExpiryDate":"2024-12-31T14:00:00","Services":[{"Name":"RELAȚIA 360","Description":"Curs practic de comunicare în relații","Amount":99000,"Products":[{"GroupName":null,"QualitiesConcat":null,"LineNo":1,"GroupId":null,"Code":"relatia360","Barcode":3601,"Name":"RELAȚIA 360 – De la conflict la conectare","Description":"Acces online","UnitPrice":99000,"UnitProduct":null,"Quantity":100,"Amount":null,"Dimensions":null,"Qualities":null,"TotalAmount":99000}]}],"MoneyType":null}
+Response: 400
+Code: 14, Message: INVALID_PARAMETER

@@ -101,6 +101,51 @@ export async function POST(req: Request) {
       );
     }
 
+    // Customer details (nume, prenume, email, telefon) — obligatorii.
+    // Sunt trimise către Paynet și stocate în comandă.
+    const rawCustomer =
+      body && typeof body.customer === 'object' && body.customer ? body.customer : {};
+    const firstName = String(rawCustomer.firstName ?? '').trim();
+    const lastName = String(rawCustomer.lastName ?? '').trim();
+    const email = String(rawCustomer.email ?? '').trim();
+
+    if (!firstName || !lastName) {
+      return NextResponse.json(
+        { error: 'BAD_REQUEST', details: 'Numele și prenumele sunt obligatorii.' },
+        { status: 400 }
+      );
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { error: 'BAD_REQUEST', details: 'Adresa de email nu este validă.' },
+        { status: 400 }
+      );
+    }
+    // Telefon: normalizează la 8 cifre (formatul Paynet MD), eliminând +373 dacă e prezent.
+    let phone = String(rawCustomer.phone ?? '').replace(/\D/g, '');
+    if (phone.startsWith('373')) phone = phone.slice(3);
+    if (phone.length < 8) {
+      return NextResponse.json(
+        { error: 'BAD_REQUEST', details: 'Numărul de telefon nu este valid.' },
+        { status: 400 }
+      );
+    }
+    phone = phone.slice(-8);
+    const fullName = `${firstName} ${lastName}`;
+
+    // Obiect client reutilizat pentru Customer și Payer în payload-ul Paynet.
+    const paynetCustomer = {
+      Code: email,
+      Name: fullName,
+      NameFirst: firstName,
+      NameLast: lastName,
+      email: email,
+      Country: 'Moldova',
+      City: 'Chisinau',
+      Address: 'Online',
+      PhoneNumber: phone,
+    };
+
     // Known products are authoritative on the server (price/currency/name come
     // from the registry, not the client). Unknown products fall back to the
     // amount/currency sent in the body (backwards compatible).
@@ -168,6 +213,10 @@ export async function POST(req: Request) {
           status: 'pending',
           invoice: String(invoice),
           access_token: randomBytes(24).toString('base64url'), // Generate access token for Paynet orders too
+          customer_first_name: firstName,
+          customer_last_name: lastName,
+          customer_email: email,
+          customer_phone: phone,
         })
         .select()
         .single();
@@ -348,17 +397,7 @@ export async function POST(req: Request) {
         MerchantCode: merchantCode, // STRING "982657"
         LinkUrlSuccess: `${baseUrl}/multumim?order=${orderId}`,
         LinkUrlCancel: `${baseUrl}/plata?cancel=1&order=${orderId}`,
-        Customer: {
-          Code: 'no-reply@liliadubita.md', // Email-like as in Reg.json
-          Name: 'Customer',
-          NameFirst: 'Customer',
-          NameLast: 'Customer',
-          email: 'no-reply@liliadubita.md',
-          Country: 'Moldova',
-          City: 'Chisinau',
-          Address: 'Online',
-          PhoneNumber: '79306530', // 8-digit numeric string
-        },
+        Customer: paynetCustomer,
         Currency: paynetCurrencyCode, // 978 EUR, 498 MDL
         ExternalDate: formatPaynetDate(new Date()), // today in Moldova timezone
         ExpiryDate: formatPaynetDate(new Date(Date.now() + 2 * 60 * 60 * 1000)), // +2 hours
@@ -378,17 +417,7 @@ export async function POST(req: Request) {
         ...basePayload,
         ...(attempt.usePhpSdkStructure ? {
           // PHP SDK structure
-          Payer: {
-            Code: 'no-reply@liliadubita.md',
-            Name: 'Customer',
-            NameFirst: 'Customer',
-            NameLast: 'Customer',
-            email: 'no-reply@liliadubita.md',
-            Country: 'Moldova',
-            City: 'Chisinau',
-            Address: 'Online',
-            PhoneNumber: '79306530',
-          },
+          Payer: paynetCustomer,
           Lang: 'ro', // PHP SDK includes Lang
           // NO Signature, SignVersion, MoneyType
         } : {
