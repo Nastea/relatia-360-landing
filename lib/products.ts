@@ -26,6 +26,8 @@ export type ProductConfig = {
   kind: ProductKind;
   /** Message the Telegram bot sends after the access token is verified. */
   telegramConfirmation: string;
+  /** For 'course' products: public link where all lessons live. */
+  courseUrl?: string;
 };
 
 export const PRODUCTS: Record<string, ProductConfig> = {
@@ -38,7 +40,12 @@ export const PRODUCTS: Record<string, ProductConfig> = {
     currency: 'EUR',
     kind: 'course',
     telegramConfirmation:
-      'Acces confirmat ✅\nAi acum acces la cursul RELAȚIA 360 - De la conflict la conectare.',
+      'Acces confirmat ✅\n' +
+      'Ai acum acces complet la cursul RELAȚIA 360 – De la conflict la conectare.\n\n' +
+      'Toate lecțiile sunt deja publicate și le poți deschide oricând de mai jos. ' +
+      'Linkul este public — nu ai nevoie de user sau parolă. 👇',
+    courseUrl:
+      'https://www.liliadubita.md/app/course/6b8bc0bf-d5b9-4914-b980-b728199d809b',
   },
 
   // Live event: Psihologia Banilor
@@ -53,8 +60,14 @@ export const PRODUCTS: Record<string, ProductConfig> = {
     currency: 'MDL',
     kind: 'event',
     telegramConfirmation:
-      'Înscriere confirmată ✅\nEști înscris la evenimentul live PSIHOLOGIA BANILOR. ' +
-      'Îți trimitem aici toate detaliile (dată, oră, locație) înainte de eveniment. Ne vedem acolo! 🎉',
+      'Înscriere confirmată ✅\n' +
+      'Ești înscris la evenimentul live PSIHOLOGIA BANILOR.\n\n' +
+      '<b>Psihologia Banilor — detalii finale</b>\n' +
+      'Iată tot ce trebuie să știi:\n\n' +
+      '📅 8 august 2026\n' +
+      '🕑 14:00 – 18:00 (4 ore)\n' +
+      '📍 SUMMIT, Sala Barcelona, str. Tighina 49/3, Chișinău\n\n' +
+      'Ne vedem acolo! 🎉',
   },
 };
 

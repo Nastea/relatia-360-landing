@@ -99,32 +99,25 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true });
       }
 
+      const courseUrl =
+        getProduct('relatia360_conflicte')?.courseUrl ?? siteUrl;
+
       switch (data) {
+        // Legacy buttons from older menu messages — send people straight to
+        // the full course now that everything is published.
         case 'lesson_1':
-          await sendMessage({
-            botToken,
-            chatId,
-            text:
-              '📘 Lecția 1\nÎn curând vei găsi aici link direct către conținutul din curs.\nPână atunci, poți accesa materialele pe site:\n' +
-              siteUrl,
-          });
-          break;
         case 'lesson_2':
-          await sendMessage({
-            botToken,
-            chatId,
-            text:
-              '📗 Lecția 2\nConținutul este în pregătire. Revino curând sau verifică site-ul:\n' +
-              siteUrl,
-          });
-          break;
         case 'exercises':
+        case 'lessons':
           await sendMessage({
             botToken,
             chatId,
-            text:
-              '🧠 Exerciții\nVei primi aici exerciții ghidate după lansarea completă a cursului.\nVezi detalii pe site:\n' +
-              siteUrl,
+            text: 'Toate lecțiile cursului RELAȚIA 360 sunt aici 👇',
+            replyMarkup: {
+              inline_keyboard: [
+                [{ text: '📚 Deschide toate lecțiile', url: courseUrl }],
+              ],
+            },
           });
           break;
         case 'support':
@@ -220,14 +213,27 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true });
       }
 
-      if (hasActiveAccess) {
-        await sendMessage({
-          botToken,
-          chatId,
-          text:
-            'Bine ai revenit! Ai deja acces activ la cursul RELAȚIA 360.\nAlege din meniu ce vrei să deschizi.',
-        });
-        await sendMainMenu({ botToken, chatId, siteUrl });
+      if (hasActiveAccess && existingAccess) {
+        const activeProduct = getProduct(existingAccess.product_id);
+        if (activeProduct?.kind === 'event') {
+          // Re-send the event details (date, time, address).
+          await sendMessage({
+            botToken,
+            chatId,
+            text: activeProduct.telegramConfirmation,
+          });
+        } else {
+          await sendMessage({
+            botToken,
+            chatId,
+            text: 'Bine ai revenit! Ai deja acces la cursul RELAȚIA 360.',
+          });
+          await sendMainMenu({
+            botToken,
+            chatId,
+            courseUrl: activeProduct?.courseUrl ?? siteUrl,
+          });
+        }
         return NextResponse.json({ ok: true });
       }
 
@@ -255,15 +261,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    // Fallback: if user has access, just show menu again
-    if (hasActiveAccess) {
-      await sendMessage({
-        botToken,
-        chatId,
-        text:
-          'Ai deja acces la curs. Folosește meniul pentru a naviga între secțiuni.',
-      });
-      await sendMainMenu({ botToken, chatId, siteUrl });
+    // Fallback: if user has access, resend the relevant info.
+    if (hasActiveAccess && existingAccess) {
+      const activeProduct = getProduct(existingAccess.product_id);
+      if (activeProduct?.kind === 'event') {
+        await sendMessage({
+          botToken,
+          chatId,
+          text: activeProduct.telegramConfirmation,
+        });
+      } else {
+        await sendMainMenu({
+          botToken,
+          chatId,
+          courseUrl: activeProduct?.courseUrl ?? siteUrl,
+        });
+      }
       return NextResponse.json({ ok: true });
     }
 
@@ -316,9 +329,14 @@ async function handleTokenVerification(params: {
         'Acces confirmat ✅\nAi acum acces la cursul RELAȚIA 360 - De la conflict la conectare.',
     });
 
-    // Live-event tickets don't get the course menu — just the confirmation.
-    if (product?.kind !== 'event') {
-      await sendMainMenu({ botToken, chatId, siteUrl });
+    // Course buyers get the lessons menu; live-event tickets get only the
+    // confirmation (which already contains all the event details).
+    if (product?.kind === 'course') {
+      await sendMainMenu({
+        botToken,
+        chatId,
+        courseUrl: product.courseUrl ?? siteUrl,
+      });
     }
     return;
   }

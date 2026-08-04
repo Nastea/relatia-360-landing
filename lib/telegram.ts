@@ -87,17 +87,13 @@ export async function answerCallbackQuery(params: {
 export async function sendMainMenu(params: {
   botToken: string;
   chatId: number;
-  siteUrl: string;
+  courseUrl: string;
 }): Promise<void> {
-  const { botToken, chatId, siteUrl } = params;
+  const { botToken, chatId, courseUrl } = params;
 
   const keyboard: InlineKeyboardMarkup = {
     inline_keyboard: [
-      [
-        { text: '📘 Lecția 1', callback_data: 'lesson_1' },
-        { text: '📗 Lecția 2', callback_data: 'lesson_2' },
-      ],
-      [{ text: '🧠 Exerciții', callback_data: 'exercises' }],
+      [{ text: '📚 Deschide toate lecțiile', url: courseUrl }],
       [{ text: '❓ Suport', callback_data: 'support' }],
     ],
   };
@@ -106,9 +102,8 @@ export async function sendMainMenu(params: {
     botToken,
     chatId,
     text:
-      'Ai acces la cursul RELAȚIA 360.\n' +
-      'Alege din meniu ce vrei să deschizi sau revino pe site pentru materiale detaliate:\n' +
-      siteUrl,
+      'Toate lecțiile cursului RELAȚIA 360 sunt aici, publicate integral.\n' +
+      'Apasă butonul de mai jos ca să le deschizi — linkul e public, îl poți accesa oricând.',
     replyMarkup: keyboard,
   });
 }
