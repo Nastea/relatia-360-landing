@@ -4,12 +4,25 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function PlataPage() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const phoneOk = phone.replace(/\D/g, '').replace(/^373/, '').length >= 8;
+  const formOk =
+    firstName.trim() !== '' &&
+    lastName.trim() !== '' &&
+    emailOk &&
+    phoneOk &&
+    acceptedTerms;
+
   const handlePayment = async () => {
-    if (!acceptedTerms || isLoading) return;
+    if (!formOk || isLoading) return;
 
     setIsLoading(true);
     setError(null);
@@ -21,8 +34,12 @@ export default function PlataPage() {
       },
       body: JSON.stringify({
         productId: 'relatia360_conflicte',
-        amount: 49,
-        currency: 'EUR',
+        customer: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+        },
       }),
     });
 
@@ -111,8 +128,49 @@ export default function PlataPage() {
               </div>
             </div>
 
-            {/* Terms Checkbox */}
+            {/* Customer details */}
             <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="Prenume"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg text-base outline-none"
+                    style={{ backgroundColor: "#FFFFFF", border: "1px solid rgba(0,0,0,0.12)", color: "#1F2933" }}
+                    autoComplete="given-name"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nume"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg text-base outline-none"
+                    style={{ backgroundColor: "#FFFFFF", border: "1px solid rgba(0,0,0,0.12)", color: "#1F2933" }}
+                    autoComplete="family-name"
+                  />
+                </div>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg text-base outline-none"
+                  style={{ backgroundColor: "#FFFFFF", border: "1px solid rgba(0,0,0,0.12)", color: "#1F2933" }}
+                  autoComplete="email"
+                />
+                <input
+                  type="tel"
+                  placeholder="Telefon (ex: 069123456)"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg text-base outline-none"
+                  style={{ backgroundColor: "#FFFFFF", border: "1px solid rgba(0,0,0,0.12)", color: "#1F2933" }}
+                  autoComplete="tel"
+                />
+              </div>
+
               <div className="flex items-start gap-4 p-6 rounded-lg" style={{ backgroundColor: "#faf8f5" }}>
                 <input
                   type="checkbox"
@@ -167,25 +225,25 @@ export default function PlataPage() {
               {/* Payment Button */}
               <button
                 onClick={handlePayment}
-                disabled={!acceptedTerms || isLoading}
+                disabled={!formOk || isLoading}
                 className="w-full py-4 rounded-lg text-lg font-semibold uppercase tracking-wide transition-all"
                 style={{
-                  background: acceptedTerms && !isLoading
+                  background: formOk && !isLoading
                     ? "linear-gradient(135deg, #E56B6F 0%, #D84A4E 100%)"
                     : "#d1d5db",
-                  color: acceptedTerms && !isLoading ? "#FFFFFF" : "#9ca3af",
-                  boxShadow: acceptedTerms && !isLoading
+                  color: formOk && !isLoading ? "#FFFFFF" : "#9ca3af",
+                  boxShadow: formOk && !isLoading
                     ? "0 4px 12px rgba(229, 107, 111, 0.4)"
                     : "none",
-                  cursor: acceptedTerms && !isLoading ? "pointer" : "not-allowed",
-                  opacity: acceptedTerms && !isLoading ? 1 : 0.6,
+                  cursor: formOk && !isLoading ? "pointer" : "not-allowed",
+                  opacity: formOk && !isLoading ? 1 : 0.6,
                 }}
               >
-                {isLoading 
-                  ? "Se procesează..." 
-                  : acceptedTerms 
-                    ? "Plătește 49 EUR" 
-                    : "Bifează termenii pentru a continua"}
+                {isLoading
+                  ? "Se procesează..."
+                  : formOk
+                    ? "Plătește 49 EUR"
+                    : "Completează datele pentru a continua"}
               </button>
 
               <div className="text-center">
