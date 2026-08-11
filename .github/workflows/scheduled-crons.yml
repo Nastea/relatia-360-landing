@@ -1,0 +1,54 @@
+name: Scheduled crons
+
+# Replaces the Vercel Cron jobs (removed from vercel.json because sub-daily
+# schedules require a Vercel Pro plan). Pings the same endpoints on a schedule.
+#
+# Requires a repo secret CRON_SECRET matching the CRON_SECRET env var set in
+# Vercel (Production). Optionally set a repo variable BASE_URL to override the
+# target host (defaults to the production domain below).
+#
+# Endpoints (both GET, auth via `Authorization: Bearer $CRON_SECRET`):
+#   /api/cron/reconcile-payments  — confirms paid-but-pending orders via Paynet
+#   /api/cron/ensure-webhook      — re-sets the Telegram webhook if it drifts
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # every 10 minutes (GitHub may delay under load)
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+concurrency:
+  group: scheduled-crons
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ vars.BASE_URL || 'https://banii.liliadubita.md' }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Check CRON_SECRET is set
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET repo secret is not set. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - name: Reconcile pending payments
+        run: |
+          code=$(curl -sS -o /tmp/reconcile.json -w '%{http_code}' \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$BASE_URL/api/cron/reconcile-payments")
+          echo "reconcile-payments -> HTTP $code"
+          cat /tmp/reconcile.json; echo
+          [ "$code" = "200" ] || { echo "::error::reconcile-payments returned $code"; exit 1; }
+
+      - name: Ensure Telegram webhook
+        if: always()
+        run: |
+          code=$(curl -sS -o /tmp/webhook.json -w '%{http_code}' \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$BASE_URL/api/cron/ensure-webhook")
+          echo "ensure-webhook -> HTTP $code"
+          cat /tmp/webhook.json; echo
+          [ "$code" = "200" ] || { echo "::error::ensure-webhook returned $code"; exit 1; }
