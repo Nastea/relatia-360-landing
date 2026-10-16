@@ -23,11 +23,28 @@ export type ProductConfig = {
   currency: Currency;
   /** Optional early-bird tier: the first `limit` paid tickets cost `amount`. */
   earlyBird?: { amount: number; limit: number };
+  /** Optional date tier: from `from` (ISO date-time) on, the price is `amount`. */
+  priceIncrease?: { from: string; amount: number };
   kind: ProductKind;
   /** Message the Telegram bot sends after the access token is verified. */
   telegramConfirmation: string;
   /** For 'course' products: public link where all lessons live. */
   courseUrl?: string;
+  /** Optional email sent to the buyer once the order is paid (via Resend). */
+  paidEmail?: { subject: string; html: (firstName: string) => string };
+};
+
+// ---------------------------------------------------------------------------
+// Intensiv „Am un plan pentru viața mea" — detalii livrate după plată.
+// TODO(Lilia): completează ora, linkurile și prețul de după data-limită.
+// ---------------------------------------------------------------------------
+export const INTENSIV = {
+  /** Ziua 1 a planului de 30 de zile (folosită și de calendarul de pe landing). */
+  startDate: '2026-11-07',
+  dateText: 'sâmbătă, 7 noiembrie 2026',
+  timeText: 'ORA_DE_COMPLETAT',
+  telegramGroupUrl: 'https://t.me/+LINK_GRUP_DE_COMPLETAT',
+  zoomUrl: 'https://zoom.us/j/LINK_ZOOM_DE_COMPLETAT',
 };
 
 export const PRODUCTS: Record<string, ProductConfig> = {
@@ -69,19 +86,67 @@ export const PRODUCTS: Record<string, ProductConfig> = {
       '📍 SUMMIT, Sala Barcelona, str. Tighina 49/3, Chișinău\n\n' +
       'Ne vedem acolo! 🎉',
   },
+
+  // Intensiv online (Zoom) + caiet de lucru.
+  // 20 € până la `priceIncrease.from`, apoi `priceIncrease.amount`.
+  intensiv_plan: {
+    id: 'intensiv_plan',
+    name: 'INTENSIV – Am un plan pentru viața mea',
+    description: 'Participare la intensivul online + caiet de lucru',
+    amount: 20,
+    currency: 'EUR',
+    // TODO(Lilia): data de la care crește prețul și noul preț.
+    // priceIncrease: { from: '2026-11-01T00:00:00+02:00', amount: 30 },
+    kind: 'event',
+    telegramConfirmation:
+      'Înscriere confirmată ✅\n' +
+      'Ești înscris la intensivul <b>„Am un plan pentru viața mea"</b>.\n\n' +
+      `📅 ${INTENSIV.dateText}\n` +
+      `🕑 ${INTENSIV.timeText}\n` +
+      '💻 Online, pe Zoom\n\n' +
+      `👥 Intră în grupul participanților: ${INTENSIV.telegramGroupUrl}\n` +
+      `🔗 Link Zoom: ${INTENSIV.zoomUrl}\n\n` +
+      'Caietul de lucru îl primești în grup. Ne vedem acolo! 🌿',
+    paidEmail: {
+      subject: 'Ești înscris la intensivul „Am un plan pentru viața mea"',
+      html: (firstName) => `
+<p>Bună${firstName ? `, ${escapeHtml(firstName)}` : ''}!</p>
+<p>Plata a fost confirmată și ești înscris la intensivul <strong>„Am un plan pentru viața mea"</strong>.</p>
+<p><strong>Când:</strong> ${INTENSIV.dateText}, ${INTENSIV.timeText}<br><strong>Unde:</strong> online, pe Zoom</p>
+<p><strong>1. Intră în grupul de Telegram al participanților</strong><br>
+Acolo primești caietul de lucru, anunțurile și reminder-ele.<br>
+<a href="${INTENSIV.telegramGroupUrl}">${INTENSIV.telegramGroupUrl}</a></p>
+<p><strong>2. Păstrează linkul de Zoom</strong><br>
+<a href="${INTENSIV.zoomUrl}">${INTENSIV.zoomUrl}</a></p>
+<p>Ai întrebări? Răspunde la acest email.</p>
+<p>Cu drag,<br>Lilia Dubița</p>
+`.trim(),
+    },
+  },
 };
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
 
 export function getProduct(id: string): ProductConfig | null {
   return PRODUCTS[id] ?? null;
 }
 
 /**
- * Resolves the price to charge, honoring the early-bird tier.
+ * Resolves the price to charge, honoring the early-bird and date tiers.
  * `soldCount` = number of tickets already sold (paid) for this product.
  */
-export function resolveAmount(product: ProductConfig, soldCount: number): number {
+export function resolveAmount(
+  product: ProductConfig,
+  soldCount: number,
+  now: Date = new Date(),
+): number {
   if (product.earlyBird && soldCount < product.earlyBird.limit) {
     return product.earlyBird.amount;
+  }
+  if (product.priceIncrease && now >= new Date(product.priceIncrease.from)) {
+    return product.priceIncrease.amount;
   }
   return product.amount;
 }

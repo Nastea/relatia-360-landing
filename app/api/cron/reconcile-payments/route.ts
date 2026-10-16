@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { sendPaidEmail } from '@/lib/paidEmail';
 import { getApiHost } from '@/lib/paynet';
 
 export const maxDuration = 60;
@@ -102,6 +103,7 @@ export async function GET(req: Request) {
           .eq('id', order.id)
           .eq('status', 'pending');
         confirmedIds.push(order.id);
+        await sendPaidEmail(order.id);
       }
     } catch (e) {
       console.error('RECONCILE_ORDER_ERROR', order.id, String(e));

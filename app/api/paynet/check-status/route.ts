@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { sendPaidEmail } from '@/lib/paidEmail';
 import { getApiHost } from '@/lib/paynet';
 
 /**
@@ -112,6 +113,7 @@ export async function POST(req: Request) {
         })
         .eq('id', order.id)
         .eq('status', 'pending');
+      await sendPaidEmail(order.id);
       return NextResponse.json({ status: 'paid' });
     }
 

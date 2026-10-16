@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { startCheckout } from '@/lib/startCheckout';
 
 const PRODUCT_ID = 'psihologia_banilor';
 
@@ -38,61 +39,14 @@ export default function TicketButton({ label }: Props) {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const res = await fetch('/api/paynet/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: PRODUCT_ID,
-          customer: {
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            email: email.trim(),
-            phone: phone.trim(),
-          },
-        }),
-      });
-
-      const json = await res.json();
-      console.log('PAYNET_CREATE_RESPONSE', json);
-
-      if (json.error) {
-        setError(
-          json.details ||
-            json.error ||
-            'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.',
-        );
-        setIsLoading(false);
-        return;
-      }
-
-      if (json.ok && json.paynet_redirect_action && json.paynet_redirect_params) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = json.paynet_redirect_action;
-        Object.entries(json.paynet_redirect_params as Record<string, string>).forEach(
-          ([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = String(value);
-            form.appendChild(input);
-          },
-        );
-        document.body.appendChild(form);
-        form.submit();
-        return;
-      }
-
-      setError(
-        json.details ||
-          json.error ||
-          'Nu s-a putut genera link-ul de plată. Te rugăm să încerci din nou.',
-      );
-      setIsLoading(false);
-    } catch (e) {
-      console.error('TICKET_PAYMENT_ERROR', e);
-      setError('A apărut o eroare de rețea. Te rugăm să încerci din nou.');
+    const err = await startCheckout(PRODUCT_ID, {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+    });
+    if (err) {
+      setError(err);
       setIsLoading(false);
     }
   };

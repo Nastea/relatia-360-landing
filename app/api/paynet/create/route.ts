@@ -166,7 +166,7 @@ export async function POST(req: Request) {
         }
         amount = resolveAmount(productConfig, count ?? 0);
       } else {
-        amount = productConfig.amount;
+        amount = resolveAmount(productConfig, 0);
       }
     }
 

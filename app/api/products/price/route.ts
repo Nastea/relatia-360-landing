@@ -41,6 +41,7 @@ export async function GET(req: Request) {
       earlyBirdAmount: product.earlyBird?.amount ?? null,
       isEarlyBird,
       earlyBirdRemaining,
+      priceIncrease: product.priceIncrease ?? null,
     },
     { headers: { 'Cache-Control': 'no-store' } },
   );

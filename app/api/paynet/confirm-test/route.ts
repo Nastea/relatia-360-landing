@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { sendPaidEmail } from '@/lib/paidEmail';
 
 async function markOrderPaid(orderId: string) {
   const { data: order, error: fetchError } = await supabaseAdmin
@@ -27,6 +28,7 @@ async function markOrderPaid(orderId: string) {
   if (updateError) {
     return { ok: false, error: updateError.message };
   }
+  await sendPaidEmail(orderId);
   return { ok: true };
 }
 

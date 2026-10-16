@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { sendPaidEmail } from '@/lib/paidEmail';
 import { getNotifySecret } from '@/lib/paynet';
 import { createHash } from 'crypto';
 
@@ -91,6 +92,7 @@ export async function POST(req: Request) {
             console.error('Supabase update error:', updateError);
           } else {
             console.log(`Order ${order.id} marked as paid (invoice: ${externalId})`);
+            await sendPaidEmail(order.id);
           }
         }
       } else {
