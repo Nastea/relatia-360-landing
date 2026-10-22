@@ -287,7 +287,7 @@ export default function IntensivPage() {
             </details>
             <details>
               <summary>Cum primesc linkul de Zoom?</summary>
-              <p>Imediat după plată primești pe email și în Telegram linkul spre grupul participanților. Linkul de Zoom îl publicăm în grup înainte de intensiv.</p>
+              <p>Imediat după plată primești pe email linkul de Zoom și linkul spre grupul participanților de pe Telegram. Le găsești și în grup înainte de intensiv.</p>
             </details>
             <details>
               <summary>Nu am primit emailul. Ce fac?</summary>

@@ -37,7 +37,7 @@ export type ProductConfig = {
 
 // ---------------------------------------------------------------------------
 // Intensiv „Am un plan pentru viața mea" — detalii livrate după plată.
-// TODO(Lilia): completează linkul de Zoom și data la care se închid preînscrierile.
+// TODO(Lilia): completează data la care se închid preînscrierile.
 // ---------------------------------------------------------------------------
 export const INTENSIV = {
   /** Ziua 1 a planului de 60 de zile (folosită și de calendarul de pe landing). */
@@ -46,7 +46,7 @@ export const INTENSIV = {
   timeText: '10:00–16:00, cu pauză de prânz 12:00–13:00',
   telegramGroupUrl: 'https://t.me/+bOjSEN9TGAEyYTVi',
   /** Gol până avem linkul: atunci mesajele spun că linkul vine în grup. */
-  zoomUrl: '',
+  zoomUrl: 'https://us06web.zoom.us/j/2162537144?pwd=4HqFuRGQnsgXSGFwvpSxEYYWyJ5WOJ.1',
 };
 
 export const PRODUCTS: Record<string, ProductConfig> = {
