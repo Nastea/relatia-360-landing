@@ -1,9 +1,8 @@
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { Archivo } from 'next/font/google';
-import { getProduct, resolveAmount, INTENSIV } from '@/lib/products';
+import { getProduct, resolveAmount } from '@/lib/products';
 import SignupForm from './SignupForm';
-import SixtyDays from './SixtyDays';
 import Reveal from './Reveal';
 import './intensiv.css';
 
@@ -170,17 +169,6 @@ export default function IntensivPage() {
             <div><dt>6 module</dt><dd>un traseu, de la A la Z</dd></div>
             <div><dt>{euro(price)}</dt><dd>{increase && priceActive ? `la preînscriere, apoi ${euro(increase.amount)}` : 'caietul inclus'}</dd></div>
           </dl>
-          <div className="ix-intro-bottom">
-            <SixtyDays start={INTENSIV.startDate} />
-            <Image
-              src="/images/462555055_1908035599726421_3831973571258710936_n.jpg"
-              alt="Lilia Dubița, psiholog, pe un fotoliu de piele"
-              width={1256}
-              height={863}
-              className="ix-intro-photo"
-              sizes="(max-width: 760px) 100vw, 42vw"
-            />
-          </div>
         </section>
 
         {/* ── Modulele: traseul GPS ───────────────────────────────────── */}

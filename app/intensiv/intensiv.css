@@ -43,8 +43,7 @@
 .ix-cover-title,
 .ix-stack-sheet h3,
 .ix-back-sign,
-.ix-facts dt,
-.ix-days-num {
+.ix-facts dt {
   font-weight: 800;
   font-stretch: 62%;
   font-variation-settings: 'wdth' 62;
@@ -199,46 +198,6 @@ body:has(.ix) > footer { display: none; }
 }
 .ix-facts dt { font-size: var(--step-head); }
 .ix-facts dd { margin-top: 10px; color: var(--muted); font-size: var(--step-small); }
-.ix-intro-bottom {
-  margin-top: 120px;
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 24px;
-  align-items: start;
-}
-.ix-intro-bottom .ix-days { grid-column: 1 / 7; }
-.ix-intro-photo {
-  grid-column: 8 / 13;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  object-position: center top;
-}
-
-/* The 60 days */
-.ix-days-readout { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; margin-bottom: 24px; }
-.ix-days-num { font-size: var(--step-head); min-width: 4.2ch; }
-.ix-days-readout span:last-child { font-size: var(--step-lead); font-weight: 500; }
-.ix-days-grid {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 6px;
-  max-width: 520px;
-}
-.ix-day {
-  aspect-ratio: 1;
-  border: 0;
-  padding: 0;
-  background: var(--surface);
-  cursor: pointer;
-  transition: background-color 140ms, transform 140ms;
-}
-.ix-day[data-on] { background: var(--ink); }
-.ix-day[aria-pressed='true'] { background: var(--accent); transform: scale(1.12); }
-.ix-day:hover { transform: scale(1.12); }
-.ix-days-note { margin-top: 20px; color: var(--muted); max-width: 44ch; font-size: var(--step-small); }
-
 /* ── Modulele: traseul GPS ────────────────────────────────────────── */
 .ix-modules {
   background: var(--surface);
@@ -480,11 +439,9 @@ body:has(.ix) > footer { display: none; }
   .ix-notch { width: 32px; height: 32px; top: -16px; }
   .ix-notch-tl { left: -16px; } .ix-notch-tr { right: -16px; }
 
-  .ix-intro-top, .ix-intro-bottom, .ix-price, .ix-faq { display: block; }
+  .ix-intro-top, .ix-price, .ix-faq { display: block; }
   .ix-intro-note { margin-top: 20px; }
   .ix-facts { margin-top: 64px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px 16px; }
-  .ix-intro-bottom { margin-top: 72px; }
-  .ix-intro-photo { margin-top: 56px; }
 
   .ix-modules-head { display: block; }
   .ix-modules-note { margin-top: 16px; }
