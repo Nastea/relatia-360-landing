@@ -37,15 +37,16 @@ export type ProductConfig = {
 
 // ---------------------------------------------------------------------------
 // Intensiv „Am un plan pentru viața mea" — detalii livrate după plată.
-// TODO(Lilia): completează linkurile și data la care se închid preînscrierile.
+// TODO(Lilia): completează linkul de Zoom și data la care se închid preînscrierile.
 // ---------------------------------------------------------------------------
 export const INTENSIV = {
   /** Ziua 1 a planului de 60 de zile (folosită și de calendarul de pe landing). */
   startDate: '2026-11-07',
   dateText: 'sâmbătă, 7 noiembrie 2026',
   timeText: '10:00–16:00, cu pauză de prânz 12:00–13:00',
-  telegramGroupUrl: 'https://t.me/+LINK_GRUP_DE_COMPLETAT',
-  zoomUrl: 'https://zoom.us/j/LINK_ZOOM_DE_COMPLETAT',
+  telegramGroupUrl: 'https://t.me/+bOjSEN9TGAEyYTVi',
+  /** Gol până avem linkul: atunci mesajele spun că linkul vine în grup. */
+  zoomUrl: '',
 };
 
 export const PRODUCTS: Record<string, ProductConfig> = {
@@ -107,7 +108,9 @@ export const PRODUCTS: Record<string, ProductConfig> = {
       `🕑 ${INTENSIV.timeText}\n` +
       '💻 Online, pe Zoom\n\n' +
       `👥 Intră în grupul participanților: ${INTENSIV.telegramGroupUrl}\n` +
-      `🔗 Link Zoom: ${INTENSIV.zoomUrl}\n\n` +
+      (INTENSIV.zoomUrl
+        ? `🔗 Link Zoom: ${INTENSIV.zoomUrl}\n\n`
+        : '🔗 Linkul de Zoom îl publicăm în grup înainte de intensiv.\n\n') +
       'Caietul de lucru îl primești în grup. Ne vedem acolo! 🌿',
     paidEmail: {
       subject: 'Ești înscris la intensivul „Am un plan pentru viața mea"',
@@ -118,9 +121,9 @@ export const PRODUCTS: Record<string, ProductConfig> = {
 <p><strong>1. Intră în grupul de Telegram al participanților</strong><br>
 Acolo primești caietul de lucru, anunțurile și reminder-ele.<br>
 <a href="${INTENSIV.telegramGroupUrl}">${INTENSIV.telegramGroupUrl}</a></p>
-<p><strong>2. Păstrează linkul de Zoom</strong><br>
-<a href="${INTENSIV.zoomUrl}">${INTENSIV.zoomUrl}</a></p>
-<p>Ai întrebări? Răspunde la acest email.</p>
+<p><strong>2. ${INTENSIV.zoomUrl ? 'Păstrează linkul de Zoom' : 'Linkul de Zoom'}</strong><br>
+${INTENSIV.zoomUrl ? `<a href="${INTENSIV.zoomUrl}">${INTENSIV.zoomUrl}</a>` : 'Îl publicăm în grupul participanților înainte de intensiv.'}</p>
+<p>Ai întrebări? Scrie-ne la <a href="mailto:danexprim@liliadubita.md">danexprim@liliadubita.md</a> sau sună la 067 102 290.</p>
 <p>Cu drag,<br>Lilia Dubița</p>
 `.trim(),
     },

@@ -67,8 +67,8 @@ export default function SignupForm({ productId, label }: { productId: string; la
         {isLoading ? 'Se procesează…' : formOk ? label : 'Completează datele ca să continui'}
       </button>
       <p className="ix-form-note">
-        Plată securizată cu cardul, prin Paynet. După plată primești pe email linkul spre grupul de
-        Telegram și linkul de Zoom.
+        Plată securizată cu cardul, prin Paynet. După plată primești pe email linkul spre grupul
+        participanților, unde vin caietul și linkul de Zoom.
       </p>
     </form>
   );
