@@ -32,7 +32,12 @@ export type ProductConfig = {
   /** For 'course' products: public link where all lessons live. */
   courseUrl?: string;
   /** Optional email sent to the buyer once the order is paid (via Resend). */
-  paidEmail?: { subject: string; html: (firstName: string) => string };
+  paidEmail?: {
+    subject: string;
+    html: (firstName: string) => string;
+    /** Optional PDF from `private/`, sent as an attachment. */
+    attachment?: { file: string; filename: string };
+  };
 };
 
 // ---------------------------------------------------------------------------
@@ -113,15 +118,17 @@ export const PRODUCTS: Record<string, ProductConfig> = {
       (INTENSIV.zoomUrl
         ? `🔗 Link Zoom: ${INTENSIV.zoomUrl}\n\n`
         : '🔗 Linkul de Zoom îl publicăm în grup înainte de intensiv.\n\n') +
-      'Caietul de lucru îl primești în grup. Ne vedem acolo! 🌿',
+      'Caietul de lucru e atașat la emailul de confirmare: printează-l înainte de intensiv. Ne vedem acolo! 🌿',
     paidEmail: {
       subject: 'Ești înscris la intensivul „Am un plan pentru viața mea"',
+      attachment: { file: 'caiet-intensiv.pdf', filename: 'Caiet de lucru - Am un plan pentru viata mea.pdf' },
       html: (firstName) => `
 <p>Bună${firstName ? `, ${escapeHtml(firstName)}` : ''}!</p>
 <p>Plata a fost confirmată și ești înscris la intensivul <strong>„Am un plan pentru viața mea"</strong>.</p>
 <p><strong>Când:</strong> ${INTENSIV.dateText}, ${INTENSIV.timeText}<br><strong>Unde:</strong> online, pe Zoom</p>
+<p><strong>Caietul de lucru e atașat la acest email.</strong> Te rugăm să-l <strong>printezi înainte de intensiv</strong> (7 pagini A4) și să-l ai lângă tine pe 7 noiembrie, împreună cu un pix. Îl completăm împreună, pas cu pas.</p>
 <p><strong>1. Intră în grupul de Telegram al participanților</strong><br>
-Acolo primești caietul de lucru, anunțurile și reminder-ele.<br>
+Acolo primești anunțurile și reminder-ele.<br>
 <a href="${INTENSIV.telegramGroupUrl}">${INTENSIV.telegramGroupUrl}</a></p>
 <p><strong>2. ${INTENSIV.zoomUrl ? 'Păstrează linkul de Zoom' : 'Linkul de Zoom'}</strong><br>
 ${INTENSIV.zoomUrl ? `<a href="${INTENSIV.zoomUrl}">${INTENSIV.zoomUrl}</a>` : 'Îl publicăm în grupul participanților înainte de intensiv.'}</p>

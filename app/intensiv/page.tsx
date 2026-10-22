@@ -85,7 +85,7 @@ const SHEETS = [
   },
   {
     title: 'Caietul de lucru',
-    text: 'O pagină pentru fiecare modul. Îl completăm împreună și te întorci la el în toate cele 60 de zile.',
+    text: 'O pagină pentru fiecare modul. Îl primești pe email după plată, îl printezi și îl completăm împreună.',
     photo: '/images/462581361_1836053763900029_7874199193613626130_n.jpg',
     alt: 'Lilia Dubița într-un costum crem, pe un scaun',
     pos: 'center 25%',
@@ -279,7 +279,7 @@ export default function IntensivPage() {
             </ul>
             <details>
               <summary>Ce am nevoie să pregătesc?</summary>
-              <p>Caietul de lucru, pe care îl primești în grupul de Telegram (printat sau deschis pe ecran), un pix și cinci ore doar pentru tine.</p>
+              <p>Caietul de lucru printat: îl primești pe email imediat după plată (7 pagini A4). Plus un pix și cinci ore doar pentru tine.</p>
             </details>
             <details>
               <summary>Pentru cine e intensivul?</summary>

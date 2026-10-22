@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { getProduct } from '@/lib/products';
 
@@ -29,6 +31,17 @@ export async function sendPaidEmail(orderId: string): Promise<void> {
       return;
     }
 
+    const att = product.paidEmail.attachment;
+    let attachments: { filename: string; content: string }[] | undefined;
+    if (att) {
+      try {
+        const content = fs.readFileSync(path.join(process.cwd(), 'private', att.file)).toString('base64');
+        attachments = [{ filename: att.filename, content }];
+      } catch (e) {
+        console.error('PAID_EMAIL_ATTACHMENT_MISSING', { orderId, file: att.file, e });
+      }
+    }
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -42,6 +55,7 @@ export async function sendPaidEmail(orderId: string): Promise<void> {
         reply_to: process.env.EMAIL_REPLY_TO || undefined,
         subject: product.paidEmail.subject,
         html: product.paidEmail.html(order.customer_first_name ?? ''),
+        attachments,
       }),
     });
 
