@@ -16,7 +16,6 @@
   --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
   --step-lead: clamp(1.375rem, 1.1rem + 0.9vw, 1.875rem);
   --step-head: clamp(2.6rem, 1.4rem + 3.8vw, 5rem);
-  --step-hero: clamp(2.6rem, 11vw, 7.6rem);
 
   --margin: clamp(16px, 2.4vw, 32px);
   --gap: clamp(96px, 12vw, 180px);
@@ -128,20 +127,26 @@ body:has(.ix) > footer { display: none; }
 
 .ix-cover {
   position: relative;
-  width: min(1040px, 100%);
+  width: min(1240px, 100%);
   margin: 72px auto 0;
   min-height: calc(100svh - 72px);
   background: var(--paper);
-  padding: clamp(56px, 7vw, 96px) clamp(24px, 5vw, 64px) 72px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
   animation: ix-cover-in 900ms cubic-bezier(.2,.7,.2,1) both;
 }
+.ix-cover-text {
+  padding: clamp(56px, 6vw, 88px) clamp(24px, 4.4vw, 64px) 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+}
+.ix-cover-photo { position: relative; overflow: hidden; }
+.ix-cover-photo img { object-fit: cover; object-position: center 22%; animation: ix-drift 18s ease-in-out infinite alternate; }
 .ix-notch {
   position: absolute;
+  z-index: 1;
   top: -24px;
   width: 48px; height: 48px;
   border-radius: 50%;
@@ -150,7 +155,7 @@ body:has(.ix) > footer { display: none; }
 .ix-notch-tl { left: -24px; }
 .ix-notch-tr { right: -24px; }
 .ix-cover-title {
-  font-size: var(--step-hero);
+  font-size: clamp(2.6rem, 5.4vw, 5.6rem);
   display: flex;
   flex-direction: column;
   gap: 0.04em;
@@ -160,7 +165,7 @@ body:has(.ix) > footer { display: none; }
 .ix-cover-title span:nth-child(2) { animation-delay: 210ms; }
 .ix-cover-by { font-size: var(--step-lead); font-weight: 500; animation: ix-rise 900ms 300ms cubic-bezier(.2,.7,.2,1) both; }
 .ix-cover-line {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start;
   gap: 10px 16px;
   font-size: var(--step-body);
   animation: ix-rise 900ms 380ms cubic-bezier(.2,.7,.2,1) both;
@@ -435,7 +440,10 @@ body:has(.ix) > footer { display: none; }
 /* ── Phone ────────────────────────────────────────────────────────── */
 @media (max-width: 760px) {
   .ix-nav-links { display: none; }
-  .ix-cover { margin-top: 24px; padding: 56px 20px 64px; gap: 22px; }
+  .ix-cover { margin-top: 24px; grid-template-columns: 1fr; }
+  .ix-cover-photo { order: -1; aspect-ratio: 4 / 3; }
+  .ix-cover-text { padding: 32px 20px 56px; gap: 22px; }
+  .ix-cover-title { font-size: 11vw; }
   .ix-notch { width: 32px; height: 32px; top: -16px; }
   .ix-notch-tl { left: -16px; } .ix-notch-tr { right: -16px; }
 

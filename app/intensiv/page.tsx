@@ -134,22 +134,33 @@ export default function IntensivPage() {
           <div className="ix-cover" id="top">
             <i className="ix-notch ix-notch-tl" aria-hidden />
             <i className="ix-notch ix-notch-tr" aria-hidden />
-            <h1 className="ix-cover-title">
-              <span>Am un plan</span>
-              <span>pentru viața mea</span>
-            </h1>
-            <p className="ix-cover-by">Intensiv online cu Lilia Dubița, psiholog</p>
-            <p className="ix-cover-line">
-              7 noiembrie 2026 <i className="ix-diamond" aria-hidden /> 5 ore pe Zoom{' '}
-              <i className="ix-diamond" aria-hidden /> caiet de lucru inclus
-            </p>
-            <p className="ix-cover-sub">
-              Nu trebuie să-ți schimbi toată viața într-o singură zi. Dar poți crea un plan care să
-              schimbe următoarele 60 de zile.
-            </p>
-            <a href="#inscriere" className="ix-btn ix-btn-big">
-              Mă preînscriu — {euro(price)}
-            </a>
+            <div className="ix-cover-text">
+              <h1 className="ix-cover-title">
+                <span>Am un plan</span>
+                <span>pentru viața mea</span>
+              </h1>
+              <p className="ix-cover-by">Intensiv online cu Lilia Dubița, psiholog</p>
+              <p className="ix-cover-line">
+                7 noiembrie 2026 <i className="ix-diamond" aria-hidden /> 5 ore pe Zoom{' '}
+                <i className="ix-diamond" aria-hidden /> caiet de lucru inclus
+              </p>
+              <p className="ix-cover-sub">
+                Nu trebuie să-ți schimbi toată viața într-o singură zi. Dar poți crea un plan care să
+                schimbe următoarele 60 de zile.
+              </p>
+              <a href="#inscriere" className="ix-btn ix-btn-big">
+                Mă preînscriu — {euro(price)}
+              </a>
+            </div>
+            <div className="ix-cover-photo">
+              <Image
+                src="/images/462581361_1836053763900029_7874199193613626130_n.jpg"
+                alt="Lilia Dubița, psiholog, într-un costum crem"
+                fill
+                priority
+                sizes="(max-width: 760px) 100vw, 45vw"
+              />
+            </div>
           </div>
         </header>
 
