@@ -5,7 +5,7 @@ import { getProduct } from '@/lib/products';
  * Trimite emailul de după plată (dacă produsul are `paidEmail`) prin Resend.
  *
  * Se apelează din toate locurile care marchează o comandă `paid` (callback,
- * check-status, reconcile, confirm-test). Cheia de idempotență `order-paid/<id>`
+ * check-status, reconcile, confirm-test). Cheia de idempotență `paid-email/<id>` (aceeași și în LMS)
  * face ca Resend să trimită un singur email per comandă, chiar dacă mai multe
  * căi îl declanșează. Nu aruncă niciodată — o eroare de email nu strică plata.
  *
@@ -34,7 +34,7 @@ export async function sendPaidEmail(orderId: string): Promise<void> {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'Idempotency-Key': `order-paid/${order.id}`,
+        'Idempotency-Key': `paid-email/${order.id}`,
       },
       body: JSON.stringify({
         from: process.env.RESEND_FROM || 'Lilia Dubița <noreply@liliadubita.md>',
