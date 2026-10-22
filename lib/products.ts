@@ -95,11 +95,13 @@ export const PRODUCTS: Record<string, ProductConfig> = {
     id: 'intensiv_plan',
     name: 'INTENSIV – Am un plan pentru viața mea',
     description: 'Participare la intensivul online + caiet de lucru',
-    amount: 20,
-    currency: 'EUR',
+    // TEST REAL: 1 leu. După test revino la: amount: 20, currency: 'EUR',
+    // priceIncrease: { amount: 30 }.
+    amount: 1,
+    currency: 'MDL',
     // TODO(Lilia): adaugă `from` (ex. '2026-11-01T00:00:00+02:00') ca prețul de 30 €
     // să se aplice automat de la acea dată. Fără `from`, se percep 20 €.
-    priceIncrease: { amount: 30 },
+    // priceIncrease: { amount: 30 },
     kind: 'event',
     telegramConfirmation:
       'Înscriere confirmată ✅\n' +

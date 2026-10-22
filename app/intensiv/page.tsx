@@ -102,6 +102,7 @@ const SHEETS = [
 ] as const;
 
 function euro(n: number) {
+  if (getProduct(PRODUCT_ID)?.currency === 'MDL') return `${n} ${n === 1 ? 'leu' : 'lei'}`;
   return `${n} €`;
 }
 
