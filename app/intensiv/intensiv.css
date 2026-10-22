@@ -4,7 +4,7 @@
 .ix {
   --field: #d9cfc2;   /* warm stone, from the backdrops of Lilia's photos */
   --paper: #f3f2ef;
-  --surface: #ebe5dc;
+  --surface: #e8e6e2;
   --frost: #e1e9ea;
   --ink: #1f2b33;
   --muted: #535d66;
@@ -216,7 +216,7 @@ body:has(.ix) > footer { display: none; }
   object-position: center top;
 }
 
-/* The 30 days */
+/* The 60 days */
 .ix-days-readout { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; margin-bottom: 24px; }
 .ix-days-num { font-size: var(--step-head); min-width: 4.2ch; }
 .ix-days-readout span:last-child { font-size: var(--step-lead); font-weight: 500; }
@@ -238,6 +238,56 @@ body:has(.ix) > footer { display: none; }
 .ix-day[aria-pressed='true'] { background: var(--accent); transform: scale(1.12); }
 .ix-day:hover { transform: scale(1.12); }
 .ix-days-note { margin-top: 20px; color: var(--muted); max-width: 44ch; font-size: var(--step-small); }
+
+/* ── Modulele: traseul GPS ────────────────────────────────────────── */
+.ix-modules {
+  background: var(--surface);
+  padding: var(--gap) var(--margin);
+}
+.ix-modules-head {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+  align-items: end;
+}
+.ix-modules-head .ix-h { grid-column: 1 / 8; }
+.ix-modules-note { grid-column: 8 / 13; max-width: 36ch; color: var(--muted); }
+.ix-sifa {
+  margin-top: clamp(48px, 6vw, 80px);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  background: var(--paper);
+  padding: clamp(24px, 3vw, 40px);
+}
+.ix-sifa dt { font-weight: 600; font-size: var(--step-lead); display: flex; align-items: baseline; gap: 12px; }
+.ix-sifa-letter {
+  font-weight: 800;
+  font-stretch: 62%;
+  font-variation-settings: 'wdth' 62;
+  font-size: var(--step-head);
+  line-height: 0.86;
+  color: var(--accent);
+}
+.ix-sifa dd { margin-top: 6px; color: var(--muted); }
+.ix-modules-list {
+  list-style: none;
+  margin-top: clamp(48px, 6vw, 80px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(32px, 4vw, 56px) 24px;
+}
+.ix-module { padding-top: 20px; border-top: 4px solid var(--ink); }
+.ix-module h3 { font-size: var(--step-lead); font-weight: 600; line-height: 1.15; }
+.ix-module-out { margin-top: 12px; }
+.ix-module-ex {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: var(--step-small);
+}
 
 /* ── Stacking sheets ──────────────────────────────────────────────── */
 .ix-stack { padding: 0; }
@@ -301,6 +351,8 @@ body:has(.ix) > footer { display: none; }
 .ix-menu-name { font-weight: 500; }
 .ix-menu-desc { margin-top: 4px; font-size: var(--step-small); color: var(--muted); max-width: 36ch; }
 .ix-menu-price {
+  white-space: nowrap;
+  flex-shrink: 0;
   font-weight: 800;
   font-stretch: 62%;
   font-variation-settings: 'wdth' 62;
@@ -434,6 +486,10 @@ body:has(.ix) > footer { display: none; }
   .ix-intro-bottom { margin-top: 72px; }
   .ix-intro-photo { margin-top: 56px; }
 
+  .ix-modules-head { display: block; }
+  .ix-modules-note { margin-top: 16px; }
+  .ix-modules-list { grid-template-columns: 1fr; }
+  .ix-sifa { grid-template-columns: 1fr 1fr; }
 
   .ix-stack-sheet { display: flex; flex-direction: column; padding: 0; }
   .ix-stack-sheet h3 { padding: 32px 20px 24px; max-width: none; }

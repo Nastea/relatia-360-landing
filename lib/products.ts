@@ -23,8 +23,9 @@ export type ProductConfig = {
   currency: Currency;
   /** Optional early-bird tier: the first `limit` paid tickets cost `amount`. */
   earlyBird?: { amount: number; limit: number };
-  /** Optional date tier: from `from` (ISO date-time) on, the price is `amount`. */
-  priceIncrease?: { from: string; amount: number };
+  /** Optional later price. Charged from `from` (ISO date-time) on; without `from`
+   *  it is only announced on the landing ("după închiderea preînscrierilor"). */
+  priceIncrease?: { from?: string; amount: number };
   kind: ProductKind;
   /** Message the Telegram bot sends after the access token is verified. */
   telegramConfirmation: string;
@@ -36,13 +37,13 @@ export type ProductConfig = {
 
 // ---------------------------------------------------------------------------
 // Intensiv „Am un plan pentru viața mea" — detalii livrate după plată.
-// TODO(Lilia): completează ora, linkurile și prețul de după data-limită.
+// TODO(Lilia): completează linkurile și data la care se închid preînscrierile.
 // ---------------------------------------------------------------------------
 export const INTENSIV = {
-  /** Ziua 1 a planului de 30 de zile (folosită și de calendarul de pe landing). */
+  /** Ziua 1 a planului de 60 de zile (folosită și de calendarul de pe landing). */
   startDate: '2026-11-07',
   dateText: 'sâmbătă, 7 noiembrie 2026',
-  timeText: 'ORA_DE_COMPLETAT',
+  timeText: '10:00–16:00, cu pauză de prânz 12:00–13:00',
   telegramGroupUrl: 'https://t.me/+LINK_GRUP_DE_COMPLETAT',
   zoomUrl: 'https://zoom.us/j/LINK_ZOOM_DE_COMPLETAT',
 };
@@ -88,15 +89,16 @@ export const PRODUCTS: Record<string, ProductConfig> = {
   },
 
   // Intensiv online (Zoom) + caiet de lucru.
-  // 20 € până la `priceIncrease.from`, apoi `priceIncrease.amount`.
+  // Preînscriere 20 €; după închiderea preînscrierilor 30 €.
   intensiv_plan: {
     id: 'intensiv_plan',
     name: 'INTENSIV – Am un plan pentru viața mea',
     description: 'Participare la intensivul online + caiet de lucru',
     amount: 20,
     currency: 'EUR',
-    // TODO(Lilia): data de la care crește prețul și noul preț.
-    // priceIncrease: { from: '2026-11-01T00:00:00+02:00', amount: 30 },
+    // TODO(Lilia): adaugă `from` (ex. '2026-11-01T00:00:00+02:00') ca prețul de 30 €
+    // să se aplice automat de la acea dată. Fără `from`, se percep 20 €.
+    priceIncrease: { amount: 30 },
     kind: 'event',
     telegramConfirmation:
       'Înscriere confirmată ✅\n' +
@@ -145,8 +147,9 @@ export function resolveAmount(
   if (product.earlyBird && soldCount < product.earlyBird.limit) {
     return product.earlyBird.amount;
   }
-  if (product.priceIncrease && now >= new Date(product.priceIncrease.from)) {
-    return product.priceIncrease.amount;
+  const later = product.priceIncrease;
+  if (later?.from && now >= new Date(later.from)) {
+    return later.amount;
   }
   return product.amount;
 }

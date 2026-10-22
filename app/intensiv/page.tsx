@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Archivo } from 'next/font/google';
 import { getProduct, resolveAmount, INTENSIV } from '@/lib/products';
 import SignupForm from './SignupForm';
-import ThirtyDays from './ThirtyDays';
+import SixtyDays from './SixtyDays';
 import Reveal from './Reveal';
 import './intensiv.css';
 
@@ -11,6 +11,7 @@ import './intensiv.css';
  *  Intensiv „Am un plan pentru viața mea" — landing.
  *  Ideea: pagina este caietul de lucru al intensivului. Coperta = primul ecran,
  *  fiecare secțiune = încă o foaie din caiet, footer-ul = coperta din spate.
+ *  Conceptul: GPS personal — 6 module, un traseu, un plan scris pe 60 de zile.
  *  Prețul, data și linkurile vin din lib/products.ts (intensiv_plan, INTENSIV).
  * ========================================================================== */
 
@@ -28,13 +29,56 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Am un plan pentru viața mea — intensiv online cu Lilia Dubița',
   description:
-    '7 noiembrie, online. 3 ore în care lucrezi practic la planul tău pentru următoarele 30 de zile. Caiet de lucru inclus.',
+    '7 noiembrie, online. 5 ore de lucru practic, 6 module și planul tău scris pentru următoarele 60 de zile. Caiet de lucru inclus.',
 };
+
+// Cele 6 module, cu titlurile și descrierile Liliei (din materialul de promovare).
+// `exercise` = exercițiul din caietul de lucru.
+const MODULES = [
+  {
+    title: 'GPS-ul vieții mele: unde mă aflu acum?',
+    text: 'Îți analizezi viața personală, profesională, emoțională și de sănătate. Descoperi ce funcționează, care sunt zonele tale forte, zonele de deficit și ce direcții merită atenție în următoarele 60 de zile.',
+    exercise: 'Coordonatele mele GPS',
+  },
+  {
+    title: 'Ce mă ține pe loc?',
+    text: 'Identifici obstacolul tău principal: lipsa energiei, procrastinarea, perfecționismul, sindromul impostorului, haosul comportamental, dubiile și criticul interior. Înțelegi cum îți consumă energia și primești strategii practice ca să le depășești.',
+    exercise: 'Piatra din drumul meu',
+  },
+  {
+    title: 'Îmi construiesc traseul: priorități și planificare',
+    text: 'Îți organizezi viața în patru domenii esențiale, îți stabilești obiective clare și realiste, le prioritizezi și le transformi în acțiuni concrete. Înveți să le pui în calendar, în agenda electronică și în cea fizică.',
+    exercise: 'Din patru cadrane în calendar',
+  },
+  {
+    title: 'Motivația mea: combustibilul pentru drum',
+    text: 'Îți descoperi dorințele reale, construiești motivația, lucrezi cu harta dorințelor și cu vizualizarea rezultatului. Te conectezi cu motivele profunde ale schimbării și înveți să-ți păstrezi focusul.',
+    exercise: 'Destinația mea',
+  },
+  {
+    title: 'Ritmul meu: disciplină, fiziologie și recuperare',
+    text: 'Înțelegi ritmurile fiziologice și nivelul tău de energie. Afli ce te epuizează și ce te încarcă, îți descoperi stilurile de odihnă și construiești obiceiuri sustenabile, un ritm care te susține, nu te epuizează.',
+    exercise: 'Ritmul meu de funcționare',
+  },
+  {
+    title: 'Planul meu de 60 de zile: de la idei la acțiune',
+    text: 'Îți identifici valorile, stabilești zonele de creștere și de menținere și integrezi toate deciziile într-un singur plan. Pleci cu un plan scris, concret și realist, cu obiective, acțiuni și termene.',
+    exercise: 'Contractul meu cu mine',
+  },
+] as const;
+
+// Metoda SIFA — firul roșu al intensivului.
+const SIFA = [
+  { letter: 'S', word: 'Scenariu', q: 'Ce repet?' },
+  { letter: 'I', word: 'Intenție', q: 'Ce vreau?' },
+  { letter: 'F', word: 'Focus', q: 'Unde îmi pun energia?' },
+  { letter: 'A', word: 'Acțiune', q: 'Ce fac concret?' },
+] as const;
 
 const SHEETS = [
   {
-    title: 'Planul pe 30 de zile',
-    text: 'Nu o listă de dorințe, ci pași concreți, împărțiți pe săptămâni, pe care îi scrii tu, cu mâna ta, în timpul intensivului.',
+    title: 'Planul pe 60 de zile',
+    text: 'Nu o listă de dorințe, ci pași concreți, împărțiți pe intervale, pe care îi scrii tu, cu mâna ta, în timpul intensivului.',
     photo: '/images/IMG_0650.JPG',
     alt: 'Lilia Dubița citind, așezată pe podea printre caiete și foi deschise',
     pos: 'center 40%',
@@ -42,7 +86,7 @@ const SHEETS = [
   },
   {
     title: 'Caietul de lucru',
-    text: 'Îl primești în grupul participanților, îl completăm împreună și te întorci la el în toate cele 30 de zile.',
+    text: 'O pagină pentru fiecare modul. Îl completăm împreună și te întorci la el în toate cele 60 de zile.',
     photo: '/images/462581361_1836053763900029_7874199193613626130_n.jpg',
     alt: 'Lilia Dubița într-un costum crem, pe un scaun',
     pos: 'center 25%',
@@ -66,7 +110,7 @@ export default function IntensivPage() {
   const product = getProduct(PRODUCT_ID)!;
   const price = resolveAmount(product, 0);
   const increase = product.priceIncrease;
-  const increaseDate = increase
+  const increaseDate = increase?.from
     ? new Date(increase.from).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })
     : null;
   const priceActive = !increase || price !== increase.amount;
@@ -81,6 +125,7 @@ export default function IntensivPage() {
           <nav className="ix-nav" aria-label="Navigare">
             <a href="#top" className="ix-mono" aria-label="Lilia Dubița">LD</a>
             <div className="ix-nav-links">
+              <a href="#module">Modulele</a>
               <a href="#ce-primesti">Ce primești</a>
               <a href="#intrebari">Întrebări</a>
             </div>
@@ -96,37 +141,37 @@ export default function IntensivPage() {
             </h1>
             <p className="ix-cover-by">Intensiv online cu Lilia Dubița, psiholog</p>
             <p className="ix-cover-line">
-              7 noiembrie 2026 <i className="ix-diamond" aria-hidden /> 3 ore pe Zoom{' '}
+              7 noiembrie 2026 <i className="ix-diamond" aria-hidden /> 5 ore pe Zoom{' '}
               <i className="ix-diamond" aria-hidden /> caiet de lucru inclus
             </p>
             <p className="ix-cover-sub">
-              Unicul meu intensiv online de o singură zi din 2026. Lucrăm practic la planul tău pentru
-              următoarele 30 de zile.
+              Nu trebuie să-ți schimbi toată viața într-o singură zi. Dar poți crea un plan care să
+              schimbe următoarele 60 de zile.
             </p>
             <a href="#inscriere" className="ix-btn ix-btn-big">
-              Mă înscriu — {euro(price)}
+              Mă preînscriu — {euro(price)}
             </a>
           </div>
         </header>
 
-        {/* ── Foaia 1: trei ore, un plan ──────────────────────────────── */}
+        {/* ── Foaia 1: cinci ore, un plan ─────────────────────────────── */}
         <section className="ix-intro" data-reveal>
           <div className="ix-intro-top">
-            <h2 className="ix-h">Trei ore. Un plan.</h2>
+            <h2 className="ix-h">Cinci ore. Un plan.</h2>
             <p className="ix-intro-note">
-              Nu vii să notezi informații și să copiezi slide-uri pe care apoi le uiți. Te apuci de
-              treabă și îți organizezi viața așa încât la final să spui: trăiesc varianta mai frumoasă
-              a vieții mele și am resursele pentru ea.
+              Pentru cine vrea să ia decizii, nu să mai amâne. De la „nu știu încotro merg” la claritate,
+              obiective reale și un plan concret de acțiune, pe care îl scrii tu, în timpul
+              intensivului.
             </p>
           </div>
           <dl className="ix-facts">
-            <div><dt>7 noiembrie</dt><dd>sâmbătă, {INTENSIV.timeText.includes('COMPLETAT') ? 'ora se anunță' : INTENSIV.timeText}</dd></div>
-            <div><dt>3 ore</dt><dd>lucru practic, nu teorie</dd></div>
-            <div><dt>Zoom</dt><dd>de oriunde ești</dd></div>
-            <div><dt>{euro(price)}</dt><dd>{increaseDate && priceActive ? `până pe ${increaseDate}` : 'caietul inclus'}</dd></div>
+            <div><dt>7 noiembrie</dt><dd>sâmbătă, 10:00–16:00</dd></div>
+            <div><dt>5 ore</dt><dd>practice, cu o pauză la prânz</dd></div>
+            <div><dt>6 module</dt><dd>un traseu, de la A la Z</dd></div>
+            <div><dt>{euro(price)}</dt><dd>{increase && priceActive ? `la preînscriere, apoi ${euro(increase.amount)}` : 'caietul inclus'}</dd></div>
           </dl>
           <div className="ix-intro-bottom">
-            <ThirtyDays start={INTENSIV.startDate} />
+            <SixtyDays start={INTENSIV.startDate} />
             <Image
               src="/images/462555055_1908035599726421_3831973571258710936_n.jpg"
               alt="Lilia Dubița, psiholog, pe un fotoliu de piele"
@@ -136,6 +181,35 @@ export default function IntensivPage() {
               sizes="(max-width: 760px) 100vw, 42vw"
             />
           </div>
+        </section>
+
+        {/* ── Modulele: traseul GPS ───────────────────────────────────── */}
+        <section className="ix-modules" id="module">
+          <div className="ix-modules-head" data-reveal>
+            <h2 className="ix-h">Șase module, un traseu</h2>
+            <p className="ix-modules-note">
+              Intensivul e construit ca un GPS personal: afli unde ești, scoți obstacolul, trasezi
+              drumul, găsești combustibilul, prinzi ritmul și pornești. Firul care le leagă e metoda
+              SIFA.
+            </p>
+          </div>
+          <dl className="ix-sifa" data-reveal aria-label="Metoda SIFA">
+            {SIFA.map((x) => (
+              <div key={x.letter}>
+                <dt><span className="ix-sifa-letter">{x.letter}</span>{x.word}</dt>
+                <dd>{x.q}</dd>
+              </div>
+            ))}
+          </dl>
+          <ol className="ix-modules-list">
+            {MODULES.map((m) => (
+              <li key={m.title} className="ix-module" data-reveal>
+                <h3>{m.title}</h3>
+                <p className="ix-module-out">{m.text}</p>
+                <p className="ix-module-ex">În caiet: „{m.exercise}”</p>
+              </li>
+            ))}
+          </ol>
         </section>
 
         {/* ── Ce primești ──────────────────────────────────── */}
@@ -167,20 +241,20 @@ export default function IntensivPage() {
           </div>
           <div className="ix-price-body" data-reveal>
             <div className="ix-menu">
-              <p className="ix-menu-group">Intensivul</p>
+              <p className="ix-menu-group">Intensivul + caietul de lucru</p>
               <div className="ix-menu-row" data-current={priceActive ? '' : undefined}>
                 <div>
-                  <p className="ix-menu-name">Participare + caiet de lucru</p>
+                  <p className="ix-menu-name">Preînscriere</p>
                   <p className="ix-menu-desc">
-                    {increaseDate ? `Prețul de lansare, până pe ${increaseDate}` : '3 ore pe Zoom, grupul participanților'}
+                    {increaseDate ? `Până pe ${increaseDate}` : 'Prețul de acum, cât sunt deschise preînscrierile'}
                   </p>
                 </div>
-                <p className="ix-menu-price">{euro(priceActive ? price : product.amount)}</p>
+                <p className="ix-menu-price">{euro(product.amount)}</p>
               </div>
               {increase && (
                 <div className="ix-menu-row" data-current={!priceActive ? '' : undefined}>
                   <div>
-                    <p className="ix-menu-name">De pe {increaseDate}</p>
+                    <p className="ix-menu-name">După închiderea preînscrierilor</p>
                     <p className="ix-menu-desc">Același intensiv, același caiet</p>
                   </div>
                   <p className="ix-menu-price">{euro(increase.amount)}</p>
@@ -197,12 +271,19 @@ export default function IntensivPage() {
             <h2 className="ix-h">Întrebări</h2>
             <ul className="ix-faq-facts">
               <li>Sâmbătă, 7 noiembrie 2026</li>
-              <li>Online, pe Zoom, 3 ore</li>
+              <li>10:00–12:00 · prima parte</li>
+              <li>12:00–13:00 · pauză de o oră</li>
+              <li>13:00–16:00 · a doua parte</li>
+              <li>Online, pe Zoom</li>
               <li>Linkurile vin pe email și în Telegram</li>
             </ul>
             <details>
               <summary>Ce am nevoie să pregătesc?</summary>
-              <p>Caietul de lucru, pe care îl primești în grupul de Telegram (printat sau deschis pe ecran), un pix și trei ore doar pentru tine.</p>
+              <p>Caietul de lucru, pe care îl primești în grupul de Telegram (printat sau deschis pe ecran), un pix și cinci ore doar pentru tine.</p>
+            </details>
+            <details>
+              <summary>Pentru cine e intensivul?</summary>
+              <p>Pentru cine vrea să ia decizii, nu să mai amâne. Nu ai nevoie de pregătire: pornim din punctul în care te afli acum și construim totul, de la harta vieții tale până la planul de 60 de zile, pas cu pas.</p>
             </details>
             <details>
               <summary>Cum primesc linkul de Zoom?</summary>
@@ -243,7 +324,7 @@ export default function IntensivPage() {
         <div className="ix-back-panel">
           <div>
             <p className="ix-back-sign">Ne vedem pe 7 noiembrie</p>
-            <p>Adu-ți caietul, un pix și trei ore doar pentru tine. Restul îl facem împreună.</p>
+            <p>Adu-ți caietul, un pix și cinci ore doar pentru tine. Restul îl facem împreună.</p>
           </div>
           <div className="ix-back-address">
             <a href="mailto:danexprim@liliadubita.md">danexprim@liliadubita.md</a>

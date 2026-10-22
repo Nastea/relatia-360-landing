@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<title>Am un plan pentru viața mea — Caiet de lucru</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap" rel="stylesheet">
+<style>
+/* Caietul intensivului: 7 pagini A4, gândit pentru print (alb, cerneală puțină)
+   și pentru completat pe ecran. Aceeași familie și culori ca landing-ul. */
+@page { size: A4; margin: 0; }
+:root {
+  --ink: #1f2b33;
+  --muted: #5b646c;
+  --line: #b8b1a7;
+  --stone: #d9cfc2;
+  --tint: #f3f1ec;
+  --accent: #0d6b75;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-family: 'Archivo', sans-serif; color: var(--ink); font-size: 9.6pt; line-height: 1.38; background: #8f8a84; }
+@media print { body { background: none; } }
+
+.page {
+  width: 210mm; height: 297mm;
+  padding: 13mm 14mm 11mm;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  page-break-after: always;
+  break-after: page;
+}
+@media screen { .page { margin: 8mm auto; } }
+.page:last-child { page-break-after: auto; break-after: auto; }
+
+.disp { font-weight: 800; font-stretch: 62%; font-variation-settings: 'wdth' 62; text-transform: uppercase; line-height: .88; letter-spacing: -.005em; }
+
+/* ── Page head ─────────────────────────────── */
+.head { display: grid; grid-template-columns: 22mm 1fr; gap: 0 6mm; align-items: end; margin-bottom: 5mm; }
+.head-no { font-size: 58pt; color: var(--accent); }
+.head-mod { font-size: 8.6pt; font-weight: 600; color: var(--muted); margin-bottom: 1.2mm; }
+.head h1 { font-size: 25pt; }
+.head-q { grid-column: 2; margin-top: 2.4mm; font-size: 10.4pt; font-style: italic; }
+
+.foot { margin-top: auto; padding-top: 3.5mm; display: flex; justify-content: space-between; gap: 8mm; font-size: 8pt; color: var(--muted); }
+.foot b { color: var(--ink); font-weight: 600; }
+
+/* ── Building blocks ───────────────────────── */
+h2 { font-size: 12.5pt; margin: 4.2mm 0 2mm; }
+h2.disp { font-size: 15pt; }
+.hint { font-size: 8.4pt; color: var(--muted); margin-bottom: 2mm; }
+.box { background: var(--tint); padding: 3.2mm 3.6mm; }
+.box-ink { background: var(--ink); color: #fff; padding: 3.2mm 3.6mm; }
+.lbl { font-size: 8.6pt; font-weight: 700; }
+.lines { display: grid; }
+.lines i { display: block; height: 7.2mm; border-bottom: .6pt solid var(--line); }
+.lines.sm i { height: 6.2mm; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3.5mm; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+.circles { display: flex; gap: 1.1mm; margin: 1.6mm 0 1mm; }
+.circles span {
+  width: 5.6mm; height: 5.6mm; border-radius: 50%;
+  border: .7pt solid var(--ink);
+  display: grid; place-items: center; flex-shrink: 0;
+  font-size: 7.4pt; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.check { display: inline-block; width: 3.6mm; height: 3.6mm; border: .7pt solid var(--ink); vertical-align: -0.6mm; margin-right: 1.6mm; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 8.2pt; font-weight: 700; padding: 1.6mm 2mm; background: var(--stone); }
+td { border-bottom: .6pt solid var(--line); padding: 0 2mm; height: 9mm; vertical-align: top; font-size: 8.6pt; }
+td:first-child { font-weight: 600; padding-top: 1.6mm; }
+td + td, th + th { border-left: .6pt solid #e4dfd7; }
+th + th { border-left-color: #cfc4b6; }
+
+/* ── Cover ─────────────────────────────────── */
+.cover { padding: 0; background: var(--stone); }
+.cover-sheet {
+  margin: 16mm 14mm 0;
+  flex: 1;
+  background: #fff;
+  padding: 20mm 16mm 14mm;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.cover-sheet::before, .cover-sheet::after {
+  content: ''; position: absolute; top: -6mm; width: 12mm; height: 12mm; border-radius: 50%; background: var(--stone);
+}
+.cover-sheet::before { left: -6mm; } .cover-sheet::after { right: -6mm; }
+.cover-kind { font-size: 11pt; font-weight: 600; color: var(--accent); margin-bottom: 6mm; }
+.cover h1 { font-size: 58pt; }
+.cover-sub { margin-top: 7mm; font-size: 12.5pt; font-weight: 500; }
+.cover-meta { margin-top: 2mm; font-size: 10.5pt; color: var(--muted); }
+.cover-name { margin-top: 12mm; display: grid; grid-template-columns: auto 1fr; gap: 4mm; align-items: end; font-size: 11pt; font-weight: 600; }
+.cover-name i { border-bottom: .8pt solid var(--ink); height: 8mm; }
+.route { margin-top: 13mm; }
+.route-title { font-size: 10pt; font-weight: 700; margin-bottom: 4mm; }
+.route ol { list-style: none; position: relative; display: grid; gap: 3.2mm; }
+.route ol::before { content: ''; position: absolute; left: 3.6mm; top: 3mm; bottom: 3mm; border-left: 1.6pt dashed var(--accent); }
+.route li { display: grid; grid-template-columns: 7.2mm 1fr; gap: 4mm; align-items: start; position: relative; }
+.route li b.pin { width: 7.2mm; height: 7.2mm; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 8.6pt; }
+.route li:last-child b.pin { background: var(--ink); }
+.route li strong { display: block; font-size: 10pt; }
+.route li span { font-size: 8.8pt; color: var(--muted); }
+.cover-how { margin-top: auto; padding-top: 8mm; display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; font-size: 8.8pt; }
+.cover-by { background: var(--stone); padding: 5mm 14mm 6mm; display: flex; justify-content: space-between; align-items: end; font-size: 9pt; }
+.cover-by strong { font-size: 13pt; }
+
+/* ── Module specifics ──────────────────────── */
+.domain { display: grid; gap: .6mm; }
+.domain-name { font-size: 9.6pt; font-weight: 700; }
+.domain-sub { font-size: 8pt; color: var(--muted); }
+.obst { display: grid; grid-template-columns: 1fr auto; gap: 1mm 4mm; align-items: center; padding: 1.7mm 0; border-bottom: .6pt solid var(--line); }
+.obst strong { font-size: 9.6pt; }
+.obst > div:first-child span { display: block; font-size: 8.2pt; color: var(--muted); }
+.obst .circles { margin: 0; }
+.scale-key { display: flex; gap: 5mm; font-size: 8pt; color: var(--muted); margin-bottom: 1mm; }
+.quad { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+.quad .box { min-height: 37mm; display: flex; flex-direction: column; }
+.quad .no { font-size: 15pt; color: var(--accent); }
+.quad .lines { margin-top: auto; }
+.energy { display: grid; grid-template-columns: 17mm repeat(18, 1fr); font-size: 7.4pt; font-variant-numeric: tabular-nums; }
+.energy > div { height: 6.2mm; border-bottom: .6pt solid var(--line); border-left: .6pt solid #e4dfd7; display: grid; place-items: center; }
+.energy > .rl { border-left: 0; justify-items: start; font-weight: 600; font-size: 8pt; }
+.energy > .hr { border-bottom: 0; font-weight: 600; color: var(--muted); }
+.week { display: grid; grid-template-columns: 24mm repeat(7, 1fr); font-size: 8pt; }
+.week > div { height: 11.5mm; border-bottom: .6pt solid var(--line); border-left: .6pt solid #e4dfd7; padding: 1mm 1.4mm; }
+.week > .rl { border-left: 0; font-weight: 600; }
+.week > .dh { height: auto; padding: 1.4mm; font-weight: 700; background: var(--stone); border-left-color: var(--stone); text-align: center; }
+.values { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.6mm; }
+.values span { border: .7pt solid var(--ink); border-radius: 99px; text-align: center; padding: 1.3mm 1mm; font-size: 8.6pt; font-weight: 500; }
+.sign { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: 3mm; font-size: 8.2pt; color: var(--muted); }
+.sign i { display: block; border-bottom: .7pt solid var(--ink); height: 7mm; margin-bottom: 1mm; }
+.ifthen { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 0 2.4mm; align-items: end; font-weight: 700; font-size: 9pt; }
+.ifthen i { border-bottom: .6pt solid var(--line); height: 7.2mm; }
+</style>
+</head>
+<body>
+
+<!-- ═════════════ 1 · COPERTA ═════════════ -->
+<section class="page cover">
+  <div class="cover-sheet">
+    <p class="cover-kind">Caiet de lucru · Intensiv practic</p>
+    <h1 class="disp">Am un plan<br>pentru viața mea</h1>
+    <p class="cover-sub">De la „Nu știu încotro merg” la „Știu unde sunt, ce vreau, ce mă împiedică și ce am de făcut în următoarele 60 de zile”.</p>
+    <p class="cover-meta">7 noiembrie 2026 · 10:00–16:00 · 5 ore · 6 module · Planul meu personal pentru 60 de zile</p>
+
+    <div class="cover-name"><span>Caietul lui / al ei:</span><i></i></div>
+
+    <div class="route">
+      <p class="route-title">Traseul GPS-ului meu</p>
+      <ol>
+        <li><b class="pin">1</b><div><strong>GPS-ul vieții mele</strong><span>Unde mă aflu acum? Punctul A.</span></div></li>
+        <li><b class="pin">2</b><div><strong>Ce mă ține pe loc?</strong><span>Piatra din drumul meu.</span></div></li>
+        <li><b class="pin">3</b><div><strong>Îmi construiesc traseul</strong><span>Priorități, obiective, agendă.</span></div></li>
+        <li><b class="pin">4</b><div><strong>Combustibilul meu</strong><span>Motivație, dorințe și focus.</span></div></li>
+        <li><b class="pin">5</b><div><strong>Ritmul meu</strong><span>Disciplină, fiziologie și recuperare.</span></div></li>
+        <li><b class="pin">6</b><div><strong>Pornesc la drum</strong><span>Planul meu pentru următoarele 60 de zile.</span></div></li>
+      </ol>
+    </div>
+
+    <div class="cover-how">
+      <p><b>Cum folosești caietul.</b> Fiecare pagină e o etapă a călătoriei. O completezi în timpul intensivului, imediat după modulul respectiv. Scrie de mână sau pe ecran, sincer și concret.</p>
+      <p><b>După intensiv.</b> Ultima pagină e planul tău. Pune-o undeva la vedere și verifică-ți progresul o dată pe săptămână. Un plan bun e flexibil, nu încă o sursă de presiune.</p>
+    </div>
+  </div>
+  <div class="cover-by">
+    <div><strong>Lilia Dubița</strong><br>Psiholog</div>
+    <div>liliadubita.md</div>
+  </div>
+</section>
+
+<!-- ═════════════ 2 · MODULUL 1 ═════════════ -->
+<section class="page">
+  <header class="head">
+    <div class="head-no disp">1</div>
+    <div>
+      <p class="head-mod">Modulul 1 · Punctul A</p>
+      <h1 class="disp">GPS-ul vieții mele</h1>
+    </div>
+    <p class="head-q">Cum să aleg unde vreau să ajung, dacă nu știu unde mă aflu?</p>
+  </header>
+
+  <h2>Exercițiul 1 — Coordonatele mele GPS</h2>
+  <p class="hint">Dă fiecărui domeniu o notă de la 1 la 10 (încercuiește), apoi notează ce funcționează și ce cere schimbare.</p>
+  <div class="grid2">
+    <div class="box domain">
+      <p class="domain-name">Eu &amp; sănătate</p><p class="domain-sub">Corp, energie, emoții, echilibru</p>
+      <div class="circles"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+      <p class="lbl">Ce funcționează</p><div class="lines sm"><i></i></div>
+      <p class="lbl" style="margin-top:1.6mm">Ce cere schimbare</p><div class="lines sm"><i></i></div>
+    </div>
+    <div class="box domain">
+      <p class="domain-name">Relații &amp; familie</p><p class="domain-sub">Cuplu, familie, prieteni, conexiuni</p>
+      <div class="circles"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+      <p class="lbl">Ce funcționează</p><div class="lines sm"><i></i></div>
+      <p class="lbl" style="margin-top:1.6mm">Ce cere schimbare</p><div class="lines sm"><i></i></div>
+    </div>
+    <div class="box domain">
+      <p class="domain-name">Carieră &amp; finanțe</p><p class="domain-sub">Muncă, venituri, proiecte, stabilitate</p>
+      <div class="circles"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+      <p class="lbl">Ce funcționează</p><div class="lines sm"><i></i></div>
+      <p class="lbl" style="margin-top:1.6mm">Ce cere schimbare</p><div class="lines sm"><i></i></div>
+    </div>
+    <div class="box domain">
+      <p class="domain-name">Dezvoltare &amp; viață personală</p><p class="domain-sub">Învățare, hobby-uri, experiențe, sens</p>
+      <div class="circles"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+      <p class="lbl">Ce funcționează</p><div class="lines sm"><i></i></div>
+      <p class="lbl" style="margin-top:1.6mm">Ce cere schimbare</p><div class="lines sm"><i></i></div>
+    </div>
+  </div>
+
+  <h2>Harta mea actuală</h2>
+  <div class="grid3">
+    <div><p class="lbl">Zona mea forte</p><p class="hint">Ce funcționează deja și merită păstrat</p><div class="lines"><i></i><i></i></div></div>
+    <div><p class="lbl">Zona de deficit</p><p class="hint">Unde am nemulțumiri sau nevoi neacoperite</p><div class="lines"><i></i><i></i></div></div>
+    <div><p class="lbl">Zona stabilă</p><p class="hint">Ce nu are nevoie de schimbări mari</p><div class="lines"><i></i><i></i></div></div>
+  </div>
+
+  <h2>Ce repet în viața mea?</h2>
+  <p class="hint">Scenariul meu: ce aleg automat, unde îmi pun timpul și energia, ce rezultate primesc.</p>
+  <div class="lines"><i></i><i></i></div>
+
+  <div class="box-ink" style="margin-top:4mm">
+    <p class="lbl">Aleg maximum două domenii care au nevoie de atenția mea în următoarele 60 de zile:</p>
+    <div class="grid2" style="margin-top:1mm"><div class="lines"><i style="border-color:#fff7"></i></div><div class="lines"><i style="border-color:#fff7"></i></div></div>
+  </div>
+
+  <footer class="foot"><span><b>Rezultat:</b> harta actuală a vieții mele.</span><span>Am un plan pentru viața mea · 2</span></footer>
+</section>
+
+<!-- ═════════════ 3 · MODULUL 2 ═════════════ -->
+<section class="page">
+  <header class="head">
+    <div class="head-no disp">2</div>
+    <div>
+      <p class="head-mod">Modulul 2 · Obstacolele</p>
+      <h1 class="disp">Ce mă ține pe loc?</h1>
+    </div>
+    <p class="head-q">Care este obstacolul care mă împiedică să avansez, chiar dacă știu ce vreau?</p>
+  </header>
+
+  <h2>Exercițiul 2 — Piatra din drumul meu</h2>
+  <p class="hint">Cât de mult te descrie fiecare afirmație în ultimele luni? Încercuiește.</p>
+  <div class="scale-key"><span>0 — deloc</span><span>1 — uneori</span><span>2 — des</span><span>3 — aproape mereu</span></div>
+  <div>
+    <div class="obst"><div><strong>Procrastinarea</strong><span>Amân chiar și lucrurile importante, deși știu că trebuie făcute.</span></div><div class="circles"><span>0</span><span>1</span><span>2</span><span>3</span></div></div>
+    <div class="obst"><div><strong>Perfecționismul</strong><span>Nu încep sau nu termin până nu pot face totul „perfect”.</span></div><div class="circles"><span>0</span><span>1</span><span>2</span><span>3</span></div></div>
+    <div class="obst"><div><strong>Sindromul impostorului</strong><span>Mă îndoiesc de competențele mele, chiar și când am rezultate.</span></div><div class="circles"><span>0</span><span>1</span><span>2</span><span>3</span></div></div>
+    <div class="obst"><div><strong>Criticul interior</strong><span>Vocea din mine mă judecă mai dur decât aș judeca pe oricine altcineva.</span></div><div class="circles"><span>0</span><span>1</span><span>2</span><span>3</span></div></div>
+    <div class="obst"><div><strong>Haosul comportamental</strong><span>Încep multe lucruri și termin puține.</span></div><div class="circles"><span>0</span><span>1</span><span>2</span><span>3</span></div></div>
+    <div class="obst"><div><strong>Lipsa energiei</strong><span>Mă simt obosit(ă) sau suprasolicitat(ă) înainte să încep.</span></div><div class="circles"><span>0</span><span>1</span><span>2</span><span>3</span></div></div>
+    <div class="obst"><div><strong>Îndoiala și frica de decizii</strong><span>Rămân blocat(ă) între variante și aștept să fiu sigur(ă).</span></div><div class="circles"><span>0</span><span>1</span><span>2</span><span>3</span></div></div>
+  </div>
+
+  <div class="box" style="margin-top:4.5mm">
+    <p class="lbl">Obstacolul meu dominant (scorul cel mai mare):</p>
+    <div class="lines"><i></i></div>
+  </div>
+
+  <div class="grid2" style="margin-top:3mm">
+    <div><p class="lbl">Când apare? Situațiile care îl declanșează</p><div class="lines"><i></i><i></i><i></i></div></div>
+    <div><p class="lbl">Ce mă costă? Ce pierd din cauza lui</p><div class="lines"><i></i><i></i><i></i></div></div>
+  </div>
+
+  <h2>Strategia mea de depășire</h2>
+  <p class="hint">Nu toți avem nevoie de mai multă disciplină. Uneori e nevoie doar să scoatem din drum mecanismul care ne blochează.</p>
+  <div class="ifthen"><span>Când apare</span><i></i><span>, eu fac</span><i></i></div>
+  <p class="lbl" style="margin-top:3mm">O acțiune concretă care îi reduce influența, chiar de săptămâna asta:</p>
+  <div class="lines"><i></i><i></i></div>
+
+  <footer class="foot"><span><b>Rezultat:</b> obstacolul meu principal și strategia de depășire.</span><span>Am un plan pentru viața mea · 3</span></footer>
+</section>
+
+<!-- ═════════════ 4 · MODULUL 3 ═════════════ -->
+<section class="page">
+  <header class="head">
+    <div class="head-no disp">3</div>
+    <div>
+      <p class="head-mod">Modulul 3 · Traseul</p>
+      <h1 class="disp">Îmi construiesc traseul</h1>
+    </div>
+    <p class="head-q">Cum transform dorințele în obiective care chiar ajung în calendar?</p>
+  </header>
+
+  <h2>Exercițiul 3 — Din patru cadrane în calendar</h2>
+  <p class="hint">Scrie câte o direcție pentru fiecare domeniu: ce vrei să fie diferit aici peste 60 de zile.</p>
+  <div class="quad">
+    <div class="box"><p class="no disp">01</p><p class="domain-name">Eu &amp; sănătate</p><p class="domain-sub">Corp, energie, emoții, echilibru</p><div class="lines"><i></i><i></i></div></div>
+    <div class="box"><p class="no disp">02</p><p class="domain-name">Relații &amp; familie</p><p class="domain-sub">Cuplu, familie, prieteni, conexiuni</p><div class="lines"><i></i><i></i></div></div>
+    <div class="box"><p class="no disp">03</p><p class="domain-name">Carieră &amp; finanțe</p><p class="domain-sub">Muncă, venituri, proiecte, stabilitate</p><div class="lines"><i></i><i></i></div></div>
+    <div class="box"><p class="no disp">04</p><p class="domain-name">Dezvoltare &amp; viață personală</p><p class="domain-sub">Învățare, hobby-uri, experiențe, sens</p><div class="lines"><i></i><i></i></div></div>
+  </div>
+
+  <h2>Cele trei obiective active ale mele</h2>
+  <p class="hint">Alege maximum trei. Un obiectiv bun e specific și măsurabil: „merg la sală de 2 ori pe săptămână”, nu „fac mai mult sport”.</p>
+  <table>
+    <thead><tr><th style="width:9mm"></th><th>Obiectivul (specific, măsurabil)</th><th style="width:21mm">Termen</th><th style="width:33mm">Cum văd progresul</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td></tr>
+      <tr><td>2</td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td></tr>
+      <tr><td>3</td><td></td><td></td><td></td></tr>
+      <tr><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2>De la obiectiv la agendă</h2>
+  <table>
+    <thead><tr><th style="width:9mm"></th><th>Primul pas (o acțiune mică)</th><th style="width:44mm">Îl pun în agendă / calendar pe</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td></td><td></td></tr>
+      <tr><td>2</td><td></td><td></td></tr>
+      <tr><td>3</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid2" style="margin-top:4mm;font-size:8.4pt">
+    <div class="box"><p class="lbl">Calendarul electronic</p><p>Blocuri de timp și notificări pentru acțiuni.</p></div>
+    <div class="box"><p class="lbl">Agenda fizică</p><p>Priorități, reflecție și urmărirea progresului.</p></div>
+  </div>
+
+  <footer class="foot"><span><b>Rezultat:</b> obiective clare, prioritizate și transformate în acțiuni.</span><span>Am un plan pentru viața mea · 4</span></footer>
+</section>
+
+<!-- ═════════════ 5 · MODULUL 4 ═════════════ -->
+<section class="page">
+  <header class="head">
+    <div class="head-no disp">4</div>
+    <div>
+      <p class="head-mod">Modulul 4 · Combustibilul</p>
+      <h1 class="disp">Destinația și motivația mea</h1>
+    </div>
+    <p class="head-q">Ce mă face să vreau cu adevărat să ajung la destinație?</p>
+  </header>
+
+  <h2>Harta dorințelor mele</h2>
+  <p class="hint">Scrie liber ce îți dorești, fără să cenzurezi. Pot fi lucruri mari sau mici.</p>
+  <div class="grid2">
+    <div class="box"><p class="lbl">Pentru mine</p><div class="lines sm"><i></i><i></i><i></i></div></div>
+    <div class="box"><p class="lbl">În relațiile mele</p><div class="lines sm"><i></i><i></i><i></i></div></div>
+    <div class="box"><p class="lbl">În muncă și bani</p><div class="lines sm"><i></i><i></i><i></i></div></div>
+    <div class="box"><p class="lbl">Ca experiențe și sens</p><div class="lines sm"><i></i><i></i><i></i></div></div>
+  </div>
+
+  <h2>Exercițiul 4 — Destinația mea</h2>
+  <p class="hint">Imaginează-ți ziua 60, dacă îți respecți planul.</p>
+  <p class="lbl">Ce fac diferit?</p><div class="lines"><i></i><i></i></div>
+  <p class="lbl" style="margin-top:2.4mm">Ce rezultat vizibil am? Ce pot să arăt, să număr, să observ?</p><div class="lines"><i></i><i></i></div>
+  <p class="lbl" style="margin-top:2.4mm">De ce contează asta pentru mine? De ce vreau asta?</p><div class="lines"><i></i><i></i></div>
+
+  <h2>Obstacolul anticipat</h2>
+  <p class="hint">Motivația fluctuează. Hotărăște dinainte ce faci când scade.</p>
+  <div class="ifthen"><span>Dacă apare</span><i></i><span>, atunci fac</span><i></i></div>
+  <div class="ifthen" style="margin-top:1.6mm"><span>Dacă apare</span><i></i><span>, atunci fac</span><i></i></div>
+
+  <div class="box" style="margin-top:4mm">
+    <p class="lbl">Ce îmi fură atenția cel mai des și cum mă protejez de asta:</p>
+    <div class="lines sm"><i></i><i></i></div>
+  </div>
+
+  <footer class="foot"><span><b>Rezultat:</b> imaginea clară a destinației și motivele mele să ajung acolo.</span><span>Am un plan pentru viața mea · 5</span></footer>
+</section>
+
+<!-- ═════════════ 6 · MODULUL 5 ═════════════ -->
+<section class="page">
+  <header class="head">
+    <div class="head-no disp">5</div>
+    <div>
+      <p class="head-mod">Modulul 5 · Ritmul</p>
+      <h1 class="disp">Ritmul meu</h1>
+    </div>
+    <p class="head-q">Cum pot merge constant înainte fără să mă epuizez?</p>
+  </header>
+
+  <h2>Exercițiul 5 — Auditul energiei mele</h2>
+  <p class="hint">Într-o zi obișnuită, cum îți e energia? Marchează cu un punct, pentru fiecare oră, rândul potrivit, apoi unește punctele.</p>
+  <div class="energy">
+    <div class="rl">Ridicată</div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+    <div class="rl">Medie</div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+    <div class="rl">Scăzută</div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+    <div class="rl hr"></div><div class="hr">6</div><div class="hr">7</div><div class="hr">8</div><div class="hr">9</div><div class="hr">10</div><div class="hr">11</div><div class="hr">12</div><div class="hr">13</div><div class="hr">14</div><div class="hr">15</div><div class="hr">16</div><div class="hr">17</div><div class="hr">18</div><div class="hr">19</div><div class="hr">20</div><div class="hr">21</div><div class="hr">22</div><div class="hr">23</div>
+  </div>
+
+  <div class="grid3" style="margin-top:3.4mm">
+    <div class="box"><p class="lbl">Somnul meu</p><div class="ifthen" style="grid-template-columns:auto 1fr;font-weight:400"><span>Mă culc la</span><i></i></div><div class="ifthen" style="grid-template-columns:auto 1fr;font-weight:400"><span>Mă trezesc la</span><i></i></div><p style="margin-top:1.8mm">Calitatea somnului:</p><div class="circles"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div></div>
+    <div class="box"><p class="lbl">Ce mă epuizează</p><div class="lines sm"><i></i><i></i><i></i></div></div>
+    <div class="box"><p class="lbl">Două obiceiuri care mă susțin</p><div class="lines sm"><i></i><i></i><i></i></div></div>
+  </div>
+
+  <h2>De ce odihnă am nevoie acum?</h2>
+  <p class="hint">Bifează ce îți lipsește. Sunt repere de reflecție, nu un diagnostic.</p>
+  <p style="display:flex;flex-wrap:wrap;gap:2mm 6mm"><span><i class="check"></i>Fizică</span><span><i class="check"></i>Mentală</span><span><i class="check"></i>Socială</span><span><i class="check"></i>Senzorială</span><span><i class="check"></i>Emoțională</span></p>
+  <p class="lbl" style="margin-top:2.6mm">Ritualul meu de recuperare: parte din plan, nu o recompensă după epuizare.</p>
+  <div class="lines"><i></i></div>
+
+  <h2>Modelul meu de săptămână</h2>
+  <div class="week">
+    <div class="rl dh" style="background:none"></div><div class="dh">Lun</div><div class="dh">Mar</div><div class="dh">Mie</div><div class="dh">Joi</div><div class="dh">Vin</div><div class="dh">Sâm</div><div class="dh">Dum</div>
+    <div class="rl">Lucru profund</div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+    <div class="rl">Obiectivele mele</div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+    <div class="rl">Mișcare</div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+    <div class="rl">Pauze și odihnă</div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+    <div class="rl">Oameni dragi</div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+  </div>
+
+  <footer class="foot"><span><b>Rezultat:</b> un ritm personal sustenabil și o rutină de recuperare.</span><span>Am un plan pentru viața mea · 6</span></footer>
+</section>
+
+<!-- ═════════════ 7 · MODULUL 6 ═════════════ -->
+<section class="page">
+  <header class="head">
+    <div class="head-no disp">6</div>
+    <div>
+      <p class="head-mod">Modulul 6 · Pornesc la drum</p>
+      <h1 class="disp">Planul meu de 60 de zile</h1>
+    </div>
+    <p class="head-q">Ce fac concret începând de mâine?</p>
+  </header>
+
+  <div class="grid2" style="grid-template-columns:1.25fr 1fr;gap:6mm">
+    <div>
+      <p class="lbl">Valorile mele: încercuiește trei</p>
+      <div class="values" style="margin-top:1.8mm">
+        <span>Familie</span><span>Sănătate</span><span>Libertate</span><span>Siguranță</span>
+        <span>Iubire</span><span>Prietenie</span><span>Dezvoltare</span><span>Creativitate</span>
+        <span>Echilibru</span><span>Liniște</span><span>Succes</span><span>Recunoaștere</span>
+        <span>Aventură</span><span>Spiritualitate</span><span>Contribuție</span><span>Independență</span>
+      </div>
+    </div>
+    <div>
+      <p class="lbl">Zone de creștere</p><p class="hint" style="margin:0">Aici vreau schimbare</p><div class="lines sm"><i></i><i></i></div>
+      <p class="lbl" style="margin-top:2mm">Zone de menținere</p><p class="hint" style="margin:0">Aici păstrez ce merge</p><div class="lines sm"><i></i><i></i></div>
+    </div>
+  </div>
+
+  <h2>Exercițiul 6 — Contractul meu cu mine</h2>
+  <table>
+    <thead><tr><th style="width:23mm">Intervalul</th><th>Obiective și acțiuni săptămânale</th><th style="width:40mm">Cum verific progresul</th></tr></thead>
+    <tbody>
+      <tr><td style="height:23mm">Zilele 1–15</td><td></td><td></td></tr>
+      <tr><td style="height:23mm">Zilele 16–30</td><td></td><td></td></tr>
+      <tr><td style="height:23mm">Zilele 31–45</td><td></td><td></td></tr>
+      <tr><td style="height:23mm">Zilele 46–60</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box-ink" style="margin-top:3.6mm">
+    <p class="lbl">Prima mea acțiune, în următoarele 24–48 de ore:</p>
+    <div class="ifthen" style="grid-template-columns:auto 1fr auto 34mm;color:#fff"><span>Ce fac</span><i style="border-color:#fff7"></i><span>Când</span><i style="border-color:#fff7"></i></div>
+  </div>
+
+  <div class="grid2" style="margin-top:3.6mm">
+    <div class="box"><p class="lbl">Ce fac dacă mă abat de la plan?</p><p class="hint" style="margin:0">Nu renunț la direcție, ajustez pasul.</p><div class="lines sm"><i></i><i></i></div></div>
+    <div class="box"><p class="lbl">Verificarea săptămânală</p><p class="hint" style="margin:0">Ziua și ora în care mă uit pe plan:</p><div class="lines sm"><i></i><i></i></div></div>
+  </div>
+
+  <div class="sign"><div><i></i>Semnătura mea</div><div><i></i>Data</div></div>
+
+  <footer class="foot"><span><b>Rezultat:</b> planul meu personal, scris și pregătit pentru implementare.</span><span>Am un plan pentru viața mea · 7</span></footer>
+</section>
+
+</body>
+</html>

@@ -13,9 +13,9 @@ function dayDate(start: string, day: number): string {
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-/** The live thing: the 30 days of the plan as squares; tap one to see its date. */
-export default function ThirtyDays({ start }: { start: string }) {
-  const [day, setDay] = useState(30);
+/** The live thing: the 60 days of the plan as squares; tap one to see its date. */
+export default function SixtyDays({ start }: { start: string }) {
+  const [day, setDay] = useState(60);
 
   return (
     <div className="ix-days">
@@ -23,8 +23,8 @@ export default function ThirtyDays({ start }: { start: string }) {
         <span className="ix-days-num">Ziua {day}</span>
         <span>{dayDate(start, day)}</span>
       </p>
-      <div className="ix-days-grid" role="group" aria-label="Cele 30 de zile ale planului">
-        {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
+      <div className="ix-days-grid" role="group" aria-label="Cele 60 de zile ale planului">
+        {Array.from({ length: 60 }, (_, i) => i + 1).map((n) => (
           <button
             key={n}
             type="button"
