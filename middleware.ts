@@ -7,7 +7,6 @@ import type { NextRequest } from 'next/server';
  */
 const SUBDOMAIN_LANDINGS: Record<string, string> = {
   'banii.liliadubita.md': '/psihologia-banilor',
-  'intensiv.liliadubita.md': '/intensiv',
 };
 
 export function middleware(req: NextRequest) {
